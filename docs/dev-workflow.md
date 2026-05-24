@@ -91,6 +91,14 @@ todos los mods de `game-mods/<gameId>/` automáticamente.
    sha256 fresco en cada build.
 5. **Firma sólo en release**: dev y `build` regular skipean firma; el
    runtime acepta `signed: false` cuando `NODE_ENV !== 'production'`.
+   Guard CI `pnpm exec node scripts/mods/check-bundled-mods-signed.mjs`
+   rechaza commitear manifest con `signed:false` en branches
+   `main`/`dev` (§2.5 audit 2026-05-24).
+6. **Single source de la lista bundled**: el script emite
+   `BUNDLED_MOD_IDS` en `bundled-mods-sources.generated.ts`; el
+   `policy.ts` del juego importa de ahi en lugar de re-declarar la
+   lista (§2.4 audit 2026-05-24). Imposible que el orden, los ids o
+   el conteo diverjan entre el manifest y el `defineModPolicy`.
 
 ---
 
