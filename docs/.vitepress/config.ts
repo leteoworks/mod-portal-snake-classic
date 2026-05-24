@@ -19,10 +19,23 @@ export default defineConfig({
     + 'manifest, API, componentes UI, publicación a Steam Workshop.',
   cleanUrls: true,
 
-  // Storybook visual difererido (R-PORTAL-7 del roadmap); los links a
-  // /storybook/* quedan como deadlinks aceptados hasta que se
-  // materialice el catalogo visual.
-  ignoreDeadLinks: [/^\/storybook\//],
+  // Deuda tecnica: sync-portal-docs.mjs deberia transformar los paths
+  // relativos del monorepo en URLs absolutas a GitHub. Mientras tanto,
+  // ignoramos los dead links a:
+  //   - /storybook/* — catalogo visual diferido (R-PORTAL-7).
+  //   - ../../../game-mods/* — subrepo de mods first-party.
+  //   - ../../../src/* — codigo del monorepo (no visible al modder).
+  //   - ../../../scaffolds/* — templates del monorepo.
+  //   - ../../games/* — docs internas del juego.
+  ignoreDeadLinks: [
+    /^\/storybook\//,
+    // Paths relativos del monorepo (con o sin `./` al inicio). El
+    // sync los copia tal cual; el modder no puede resolverlos.
+    /(?:^|\/)(\.\.\/)+game-mods\//,
+    /(?:^|\/)(\.\.\/)+src\//,
+    /(?:^|\/)(\.\.\/)+scaffolds\//,
+    /(?:^|\/)(\.\.\/)+games\//,
+  ],
 
   themeConfig: {
     siteTitle: 'Mods · Snake Classic',
