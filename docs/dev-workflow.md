@@ -378,7 +378,7 @@ de claves activas + las archivadas en una ventana de gracia
 
 | Componente | Estado | Notas |
 |---|---|---|
-| Subrepo `game-mods/` (git, submódulo en parent) | ✅ Activo | Remote: `acamposruiz/my-game-fw-mods` (privado). |
+| Subrepo `game-mods/` (git, submódulo en parent) | ✅ Activo | Remote: `leteoworks/my-game-fw-mods` (privado). |
 | Familia `@modules/moddable/*` (13 submódulos) | ✅ Completa | Sprints 1-5 mergeados (`91285015`). |
 | Primer mod `studio.gameplay-tuner` v0.1.0 | ✅ Commiteado | En `game-mods/snake-classic/`. |
 | Snake `tunables.ts` + `moddable-config.ts` | ✅ Cableado | 14 tests verdes. |
@@ -494,7 +494,7 @@ subrepo y GitHub te enseña el delta del submódulo en cada commit del
 parent.
 
 **¿Puedo desarrollar un mod en un fork del subrepo?**
-Sí — cualquier persona puede clonar `acamposruiz/my-game-fw-mods`,
+Sí — cualquier persona puede clonar `leteoworks/my-game-fw-mods`,
 crear su mod en `<gameId>/<vendor>.<id>/`, y mandar PR. Los mods de
 contribuyentes externos pasan firma de "workshopVerified" (no de
 `studioSigned`).
