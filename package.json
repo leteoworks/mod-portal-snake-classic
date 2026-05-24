@@ -2,16 +2,12 @@
   "name": "mod-portal-snake-classic",
   "version": "1.0.0",
   "private": true,
-  "description": "Portal de documentación para autores de mods de Snake Classic. Vitepress + Storybook + catálogo machine-readable. Scaffold W2 del roadmap mods-workshop-ecosystem.",
+  "description": "Portal de documentacion para autores de mods de Snake Classic. Vitepress + catalogo machine-readable. Storybook diferido (R-PORTAL-7 del roadmap).",
   "type": "module",
   "scripts": {
     "dev": "vitepress dev docs",
     "build": "vitepress build docs",
-    "preview": "vitepress preview docs",
-    "storybook": "storybook dev -p 6006 --no-open",
-    "build:storybook": "storybook build -o dist/storybook",
-    "build:all": "pnpm build && pnpm build:storybook",
-    "validate": "node scripts/validate-catalog.mjs"
+    "preview": "vitepress preview docs"
   },
   "devDependencies": {
     "vitepress": "^1.5.0",
