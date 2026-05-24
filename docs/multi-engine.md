@@ -5,30 +5,30 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Elegir motor para tu mod
+# Choose an engine for your mod
 
-Tu mod declara qué motor necesita en `mod.json`. Esta guía te ayuda a
-elegirlo bien.
+Your mod declares which engine it needs in `mod.json`. This guide
+helps you pick the right one.
 
-> Contexto técnico de cada motor: [../engines/](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/engines/).
+> Technical context for each engine: [../engines/](https://github.com/leteoworks/my-game-fw/tree/main/docs/mods/engines).
 
 ---
 
-## La pregunta clave
+## The key question
 
-**¿Qué hace tu mod?** La respuesta dicta el motor.
+**What does your mod do?** The answer dictates the engine.
 
-| Tu mod... | Motor recomendado |
+| Your mod… | Recommended engine |
 |---|---|
-| Aporta tabs de settings con formularios | `quickjs-declarative-ui` |
-| Solo es lógica (escucha eventos, modifica parámetros) | `isolated-vm` (Electron) o `quickjs` (cross-platform) |
-| Aporta UI HTML rica (dashboards, gráficos) | `iframe-sandbox` |
-| Tiene visualización propia con canvas | `web-worker-offscreen-canvas` |
-| Es perf-crítico y trusted | `ses-compartment` |
+| Adds settings tabs with forms | `quickjs-declarative-ui` |
+| Is just logic (listens to events, modifies parameters) | `isolated-vm` (Electron) or `quickjs` (cross-platform) |
+| Adds rich HTML UI (dashboards, charts) | `iframe-sandbox` |
+| Has its own canvas visualization | `web-worker-offscreen-canvas` |
+| Is perf-critical and trusted | `ses-compartment` |
 
 ---
 
-## Forma del campo
+## Field shape
 
 ```json
 "engine": {
@@ -37,19 +37,19 @@ elegirlo bien.
 }
 ```
 
-- `preferred`: motor que el framework intenta primero.
-- `fallbacks`: si `preferred` no está disponible (no en
-  `policy.engines` del juego, kill-switched, o no en la plataforma),
-  el loader prueba estos en orden.
+- `preferred`: engine the framework tries first.
+- `fallbacks`: if `preferred` is unavailable (not in the game's
+  `policy.engines`, kill-switched, or not on the platform), the
+  loader tries these in order.
 
-Lista de motores válida: ver
+Valid engine list: see
 [../architecture/mod-engine-capability.md § "EngineId"](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/mod-engine-capability.md).
 
 ---
 
-## Fallbacks útiles
+## Useful fallbacks
 
-### "Quiero que funcione en todas las plataformas"
+### "I want it to work on all platforms"
 
 ```json
 "engine": {
@@ -58,11 +58,11 @@ Lista de motores válida: ver
 }
 ```
 
-isolated-vm es ideal en Electron; quickjs funciona en todas. Si la
-build es móvil bundled-only, isolated-vm no existe → fallback a
-quickjs.
+isolated-vm is ideal on Electron; quickjs works on all. If the
+build is mobile bundled-only, isolated-vm doesn't exist →
+fallback to quickjs.
 
-### "Quiero perf máxima si el estudio confía en mí"
+### "I want max perf if the studio trusts me"
 
 ```json
 "engine": {
@@ -71,10 +71,10 @@ quickjs.
 }
 ```
 
-SES es rápido pero share heap. Si el juego no lo permite (porque no
-confía en mods), fallback a isolated-vm/quickjs.
+SES is fast but shares the heap. If the game doesn't allow it
+(because it doesn't trust mods), fallback to isolated-vm/quickjs.
 
-### "Necesito UI HTML; sin ella no tiene sentido"
+### "I need HTML UI; without it the mod doesn't make sense"
 
 ```json
 "engine": {
@@ -83,64 +83,65 @@ confía en mods), fallback a isolated-vm/quickjs.
 }
 ```
 
-Lista vacía: si iframe no está disponible, el mod queda
-`incompatible`. Mejor que un fallback inadecuado.
+Empty list: if iframe isn't available, the mod is marked
+`incompatible`. Better than an inadequate fallback.
 
 ---
 
-## Restricciones por motor
+## Per-engine restrictions
 
 ### isolated-vm
 
-- Solo Electron. En web/iOS/Android no existe.
-- Si publicas un mod solo-isolated-vm, marca claramente "Solo Electron"
-  en metadata.
+- Electron only. On web/iOS/Android it doesn't exist.
+- If you publish an isolated-vm-only mod, mark it clearly
+  "Electron only" in metadata.
 
 ### web-worker-offscreen-canvas
 
-- Worker tiene `fetch` por defecto, pero el framework lo elimina antes
-  de cargar tu mod. Si tu mod intenta `fetch(...)` directo, tirará
-  `ReferenceError`. Usa `host.http` en su lugar.
+- Worker has `fetch` by default, but the framework removes it
+  before loading your mod. If your mod tries `fetch(...)` directly,
+  it'll throw `ReferenceError`. Use `host.http` instead.
 
 ### iframe-sandbox
 
-- Sin `allow-same-origin`. No puedes acceder a localStorage del
-  juego, ni cookies, ni padres.
-- CSP estricta. Sin `connect-src` para hosts externos directos; HTTP
-  va por `host.http`.
+- No `allow-same-origin`. You can't access the game's
+  localStorage, cookies, or parents.
+- Strict CSP. No `connect-src` for direct external hosts; HTTP
+  goes through `host.http`.
 
 ### quickjs / quickjs-declarative-ui
 
-- Sin DOM. Si necesitas DOM, prefiere iframe.
-- Marshalling per call. Para 10k calls/seg, batch.
+- No DOM. If you need DOM, prefer iframe.
+- Marshalling per call. For 10k calls/sec, batch.
 
 ### ses-compartment
 
-- Same heap. Loop infinito cuelga el juego.
-- Solo apto si el estudio te marca trust tier elevado.
+- Same heap. An infinite loop hangs the game.
+- Only suitable if the studio assigns you an elevated trust tier.
 
 ### shadow-realm
 
-- Disponibilidad irregular (2026). El framework detecta runtime; si
-  no está, fallback.
+- Irregular availability (2026). The framework detects at
+  runtime; if not present, fallback.
 
 ---
 
-## Cómo verificar que tu motor está soportado
+## How to check that your engine is supported
 
-El juego documenta sus motores aceptados en su host-api-changelog. Si
-no aparece allí, no está soportado por ese juego — usa fallback o
-elige otro motor.
+The game documents its accepted engines in its
+host-api-changelog. If it doesn't appear there, it isn't
+supported by that game — use a fallback or pick another engine.
 
 ---
 
-## Resumen
+## Summary
 
-- Elige el motor según lo que **hace** tu mod.
-- Pon fallbacks razonables — un mod sin fallbacks falla si el motor
-  preferido no está.
-- Si tu mod depende crítico de capabilities de un motor concreto, no
-  pongas fallbacks engañosos: prefiere lista vacía + mensaje claro.
-- Los motores cross-platform (quickjs, quickjs-declarative-ui,
-  ses-compartment, iframe, worker, shadow-realm) son la opción más
-  amplia. isolated-vm es solo Electron.
+- Pick the engine based on what your mod **does**.
+- Set reasonable fallbacks — a mod without fallbacks fails if the
+  preferred engine isn't available.
+- If your mod critically depends on capabilities of a specific
+  engine, don't set misleading fallbacks: prefer an empty list +
+  clear message.
+- Cross-platform engines (quickjs, quickjs-declarative-ui,
+  ses-compartment, iframe, worker, shadow-realm) are the
+  broadest option. isolated-vm is Electron only.

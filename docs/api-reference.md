@@ -7,31 +7,31 @@
 
 # API Reference — `host.*`
 
-Catálogo de funciones disponibles desde el código de tu mod. Las
-funciones aparecen solo si los permisos correspondientes están
-declarados en tu manifest **y** la policy del juego los expone.
+Catalog of functions available from your mod's code. Functions
+appear only if the corresponding permissions are declared in your
+manifest **and** the game's policy exposes them.
 
-> Convención: si una función devuelve `{ ok, value?, error? }`, **nunca
-> lanza** ante fallos previsibles. Excepciones del lenguaje (TypeError,
-> etc.) sí se propagan dentro del sandbox.
+> Convention: if a function returns `{ ok, value?, error? }`, it
+> **never throws** on foreseeable failures. Language exceptions
+> (TypeError, etc.) do propagate inside the sandbox.
 
 ---
 
 ## `host.api`
 
 ```js
-host.api.version      // string SemVer de la host API del juego
-host.api.gameId       // string, gameId del juego activo
-host.api.modId        // string, tu mod id
-host.api.modVersion   // string SemVer de tu mod
-host.api.engineId     // string, motor en el que estás corriendo
+host.api.version      // string, SemVer of the game's host API
+host.api.gameId       // string, gameId of the active game
+host.api.modId        // string, your mod id
+host.api.modVersion   // string, SemVer of your mod
+host.api.engineId     // string, engine you're running on
 ```
 
-Lectura informativa. Útil para feature detection según versión.
+Informative read. Useful for feature detection by version.
 
 ---
 
-## Eventos
+## Events
 
 ### `host.subscribeEvent(name, cb): unsubscribe`
 
@@ -40,24 +40,24 @@ const unsub = host.subscribeEvent('SCORE_CHANGED', (payload) => {
   console.log('score =', payload.score)
 })
 
-// para desuscribir:
+// to unsubscribe:
 unsub()
 ```
 
-Necesita permiso `{ type: 'events', subscribe: ['SCORE_CHANGED'] }`.
+Needs permission `{ type: 'events', subscribe: ['SCORE_CHANGED'] }`.
 
 ### `host.dispatch(name, payload)`
 
 ```js
-host.dispatch('MOD_NOTIFICATION', { text: '¡Hola!' })
+host.dispatch('MOD_NOTIFICATION', { text: 'Hi!' })
 ```
 
-Necesita permiso `{ type: 'events', dispatch: ['MOD_*'] }`. Convención:
-prefijar tus eventos con `MOD_<tu-modid-sin-puntos>_`.
+Needs permission `{ type: 'events', dispatch: ['MOD_*'] }`.
+Convention: prefix your events with `MOD_<your-modid-without-dots>_`.
 
 ---
 
-## Estado
+## State
 
 ### `host.state.read(path)`
 
@@ -65,117 +65,117 @@ prefijar tus eventos con `MOD_<tu-modid-sin-puntos>_`.
 const score = await host.state.read('game.score')
 ```
 
-Devuelve copia read-only. Necesita permiso
+Returns a read-only copy. Needs permission
 `{ type: 'state', read: ['game.score'] }`.
 
 ### `host.state.write(path, value)`
 
 ```js
 const r = await host.state.write('game.someFlag', true)
-// r = { ok: true } o { ok: false, error: { code: 'PATH_NOT_WRITABLE' } }
+// r = { ok: true } or { ok: false, error: { code: 'PATH_NOT_WRITABLE' } }
 ```
 
-Necesita permiso `{ type: 'state', write: [...] }`. Raro — la mayoría
-de juegos no permiten que mods escriban estado directamente.
+Needs permission `{ type: 'state', write: [...] }`. Rare — most
+games don't allow mods to write state directly.
 
 ---
 
-## Storage del mod
+## Mod storage
 
 ### `host.storage.get(key)`
 
 ```js
-const config = await host.storage.get('my-config') // valor o undefined
+const config = await host.storage.get('my-config') // value or undefined
 ```
 
 ### `host.storage.set(key, value)`
 
 ```js
 const r = await host.storage.set('my-config', { foo: 1 })
-// r = { ok: true } o { ok: false, error: { code: 'QUOTA_EXCEEDED' } }
+// r = { ok: true } or { ok: false, error: { code: 'QUOTA_EXCEEDED' } }
 ```
 
 ### `host.storage.delete(key)` / `host.storage.keys()`
 
-Cuota declarada en el manifest: `{ type: 'storage', quotaKb: 128 }`.
-Tu storage es aislado — ningún otro mod ni el juego pueden leerlo.
+Quota declared in the manifest: `{ type: 'storage', quotaKb: 128 }`.
+Your storage is isolated — no other mod or the game can read it.
 
-### Concurrencia: last-write-wins (FIX-23.3, audit J-F3)
+### Concurrency: last-write-wins (FIX-23.3, audit J-F3)
 
-Si tu mod tiene un `settings-ui` con bindings reactivos (slider,
-toggle, etc.) Y un hook (`onEvent:GAME_STARTED`, etc.) que también
-escribe en storage, los dos paths pueden competir sobre la misma key.
-Reglas que debes asumir:
+If your mod has a `settings-ui` with reactive bindings (slider,
+toggle, etc.) AND a hook (`onEvent:GAME_STARTED`, etc.) that also
+writes to storage, the two paths can race on the same key. Rules
+to assume:
 
-- El backing storage (`syncStorage` del framework) es **síncrono**.
-  No hay race tipo "two writes at the same nanosecond" — el JS
-  event loop ordena ambos efectos.
-- El que ejecuta más tarde gana. La UI (`setBinding`) está
-  bridge-ada via promise → su efecto cae al microtask queue. El hook
-  del mod (`host.storage.set`) idem.
-- Si el jugador mueve el slider mientras `GAME_STARTED` dispara, el
-  orden depende del event loop: typically la UI gana (el evento del
-  jugador llega primero) pero NO está garantizado.
+- The backing storage (`syncStorage` of the framework) is
+  **synchronous**. There's no "two writes at the same nanosecond"
+  race — the JS event loop orders both effects.
+- Whoever runs later wins. The UI (`setBinding`) is bridged via
+  promise → its effect lands in the microtask queue. The mod
+  hook (`host.storage.set`) ditto.
+- If the player moves the slider while `GAME_STARTED` fires, the
+  order depends on the event loop: typically the UI wins (the
+  player event arrives first) but it's NOT guaranteed.
 
-**Anti-patrón**: escribir la misma key desde dos paths sin un eje de
-coordinación. Patrón canónico:
+**Anti-pattern**: writing the same key from two paths without a
+coordination axis. Canonical pattern:
 
 ```js
-// Opción A — el hook del mod LEE para aplicar pero NO escribe.
+// Option A — the mod hook READS to apply but does NOT write.
 host.subscribeEvent('GAME_STARTED', async () => {
   const cfg = await host.storage.get('speed-curve')
   applyToGame(cfg)
 })
-// El binding UI (`setBinding('speed-curve', ...)`) es el ÚNICO writer.
+// The UI binding (`setBinding('speed-curve', ...)`) is the ONLY writer.
 
-// Opción B — particiona el key-space. La UI escribe 'config.*',
-// el hook escribe 'runtime-state.*'. Cero overlap.
+// Option B — partition the key-space. The UI writes 'config.*',
+// the hook writes 'runtime-state.*'. Zero overlap.
 ```
 
-Si necesitas que el hook recompute basado en el binding actual,
-léelo *fresh* en cada invocación (no caches).
+If you need the hook to recompute based on the current binding,
+read it *fresh* each invocation (don't cache).
 
 ---
 
-## Settings UI declarativa
+## Declarative settings UI
 
 ### `host.registerSettingsTab(descriptor)`
 
-Aporta una tab a la página de settings. Solo funciona en motores con
+Adds a tab to the settings page. Only works on engines with
 `ownUiCapable: true` (e.g., `quickjs-declarative-ui`).
 
 ```js
 host.registerSettingsTab({
   id: 'my-tab',
-  title: 'Mi mod',
+  title: 'My mod',
   icon: 'tune',
-  sections: [...],   // ver catálogo completo
+  sections: [...],   // see full catalog
 })
 ```
 
-**Catálogo de componentes UI disponible**:
-- Sistema framework-level + per-game:
+**Available UI component catalog**:
+- Framework-level + per-game system:
   [../architecture/mod-ui-component-system.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/mod-ui-component-system.md).
-- Documentación visual interactiva por juego: **submódulo git**
-  `mod-ui-catalog-<gameId>` con Storybook. URL del estudio o clone
-  local con `pnpm storybook`. Incluye stories, snippets para copiar,
-  ejemplos compuestos.
-- Vocabulario básico embedded del motor:
+- Interactive visual documentation per game: **git submodule**
+  `mod-ui-catalog-<gameId>` with Storybook. Studio URL or local
+  clone with `pnpm storybook`. Includes stories, copy-paste
+  snippets, composite examples.
+- Basic engine-embedded vocabulary:
   [../engines/quickjs-declarative-ui.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/engines/quickjs-declarative-ui.md).
 
-Necesita permiso `{ type: 'settings-ui' }`.
+Needs permission `{ type: 'settings-ui' }`.
 
-### `host.renderPage(descriptor)` — pantallas completas
+### `host.renderPage(descriptor)` — full screens
 
-Para mods que aporten pantallas más allá de tabs de settings (galerías,
-dashboards, viewers, configuradores avanzados), el mod usa el mismo
-catálogo de UI declarativa. La pantalla se monta en la navegación del
-juego cuando el mod la solicita.
+For mods that add screens beyond settings tabs (galleries,
+dashboards, viewers, advanced configurators), the mod uses the
+same declarative UI catalog. The screen is mounted in the game's
+navigation when the mod requests it.
 
 ```js
 host.renderPage({
   id: 'my-mod.dashboard',
-  title: 'Dashboard del mod',
+  title: 'Mod dashboard',
   icon: 'dashboard',
   sections: [
     { kind: 'grid', cols: 2, gap: 'md', children: [
@@ -186,35 +186,34 @@ host.renderPage({
 })
 ```
 
-Detalles en
+Details in
 [../architecture/mod-ui-component-system.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/mod-ui-component-system.md).
 
 ---
 
-## Hooks del mod
+## Mod hooks
 
 ### `host.registerHook(name, fn)`
 
 ```js
 host.registerHook('onActivate', () => {
-  console.log('Mod arrancado')
+  console.log('Mod started')
 })
 
 host.registerHook('onDeactivate', () => {
-  console.log('Mod apagado')
+  console.log('Mod stopped')
 })
 ```
 
-Hooks canónicos:
-- `onActivate`: llamado tras carga, antes de empezar a recibir
-  eventos.
-- `onDeactivate`: antes de dispose.
+Canonical hooks:
+- `onActivate`: called after load, before receiving events.
+- `onDeactivate`: before dispose.
 
 ---
 
-## Power-ups (si tu juego los tiene)
+## Power-ups (if your game has them)
 
-Necesita permiso `{ type: 'powerups', actions: [...] }`.
+Needs permission `{ type: 'powerups', actions: [...] }`.
 
 ### `host.callHostFn('togglePowerUp', { powerupId, enabled })`
 
@@ -224,11 +223,11 @@ host.callHostFn('togglePowerUp', { powerupId: 'mega-fruit', enabled: false })
 
 ### `host.callHostFn('setPowerUpSpawnChance', { powerupId, chance })`
 
-Modifica `spawnChance` (0..1).
+Modifies `spawnChance` (0..1).
 
-### Power-ups específicos del juego
+### Game-specific power-ups
 
-Cada juego publica su API en `docs/games/<id>/host-api-changelog.md`.
+Each game publishes its API in `docs/games/<id>/host-api-changelog.md`.
 
 ---
 
@@ -241,8 +240,9 @@ const text = host.t('mod.my-mod.title')
 const greet = host.t('mod.my-mod.greet', { name: 'Player' })
 ```
 
-Tus strings viven en namespace `mod.<modId>.*`. Necesitas permiso
-`{ type: 'i18n', namespaces: ['my-mod-*'] }` y registrar los strings:
+Your strings live in the namespace `mod.<modId>.*`. You need
+permission `{ type: 'i18n', namespaces: ['my-mod-*'] }` and to
+register the strings:
 
 ```js
 host.i18n.register('en', { 'mod.my-mod.title': 'My Mod', /* ... */ })
@@ -253,18 +253,18 @@ host.i18n.register('es', { 'mod.my-mod.title': 'Mi Mod', /* ... */ })
 
 ## Assets
 
-Necesita permiso `{ type: 'assets', kinds: [...] }`.
+Needs permission `{ type: 'assets', kinds: [...] }`.
 
 ```js
 host.registerAsset({ kind: 'image', id: 'my-icon', source: 'icon.png' })
-// uso: 'mod://your-mod-id/my-icon'
+// usage: 'mod://your-mod-id/my-icon'
 ```
 
 ---
 
-## HTTP (si tu juego lo permite)
+## HTTP (if your game allows it)
 
-Necesita permiso `{ type: 'network', hosts, methods }`.
+Needs permission `{ type: 'network', hosts, methods }`.
 
 ```js
 const r = await host.http.request({
@@ -277,14 +277,14 @@ if (r.ok && r.status === 200) {
 }
 ```
 
-Detalle:
+Detail:
 [../architecture/network-and-backend-access.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/network-and-backend-access.md).
 
 ---
 
-## Backend clients del juego
+## Game backend clients
 
-Si el juego expone alguno via `surfaces.backendClients`:
+If the game exposes any via `surfaces.backendClients`:
 
 ```js
 const top10 = await host.backend['leaderboard.snake'].list({ limit: 10 })
@@ -299,64 +299,65 @@ const owned = host.entitlements.getActiveDlcs()
 // ['endless-plus'] etc.
 ```
 
-Read-only. Tu mod **no puede** otorgar DLCs.
+Read-only. Your mod **cannot** grant DLCs.
 
 ---
 
-## RNG (si tu juego lo expone)
+## RNG (if your game exposes it)
 
 ```js
 const r = host.rng.next()         // [0, 1)
 const n = host.rng.int(0, 100)    // [0, 100]
 ```
 
-Seed determinista por sesión — útil para replays.
+Deterministic seed per session — useful for replays.
 
 ---
 
 ## Logging
 
 ```js
-host.log.debug('mensaje')
-host.log.info('mensaje')
-host.log.warn('mensaje')
-host.log.error('mensaje', { extra: '...' })
+host.log.debug('message')
+host.log.info('message')
+host.log.warn('message')
+host.log.error('message', { extra: '...' })
 ```
 
-Visible en la consola del juego (en dev) y en el panel "Logs" del
-mod (en settings).
+Visible in the game's console (in dev) and in the mod's "Logs"
+panel (in settings).
 
 ---
 
-## Analytics custom
+## Custom analytics
 
-Necesita declarar eventos en `manifest.analytics.events`:
+Requires declaring events in `manifest.analytics.events`:
 
 ```js
 host.analytics.track('preset_applied', { presetName: 'hardcore' })
 ```
 
-Los eventos `mod.framework.*` los emite el runtime sin que hagas nada.
+The `mod.framework.*` events are emitted by the runtime without
+you doing anything.
 
 ---
 
-## Lo que **no** tienes acceso
+## What you **don't** have access to
 
 - `window`, `document`, `process`, `require`, `import`
-- `fetch`, `XMLHttpRequest`, `WebSocket` directos
+- `fetch`, `XMLHttpRequest`, `WebSocket` directly
 - `localStorage`, `sessionStorage`, `IndexedDB`
-- DOM, eventos del navegador
+- DOM, browser events
 - File system
 
-Todo lo que no esté listado en este doc no existe para tu mod.
+Anything not listed in this doc doesn't exist for your mod.
 
 ---
 
-## Resumen
+## Summary
 
-- API plana bajo `host.*`.
-- Cada función requiere su permiso correspondiente.
-- Errores estructurados (no throws) para fallos previsibles.
-- Documentación específica del juego en
-  `docs/games/<id>/host-api-changelog.md` — siempre consulta esa para
-  features game-specific.
+- Flat API under `host.*`.
+- Each function requires its corresponding permission.
+- Structured errors (not throws) for foreseeable failures.
+- Game-specific documentation in
+  `docs/games/<id>/host-api-changelog.md` — always check that one
+  for game-specific features.

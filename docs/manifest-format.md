@@ -5,15 +5,15 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Formato de `mod.json` — referencia para modders
+# `mod.json` format — modder reference
 
-Spec completa de los campos del manifest desde la perspectiva del
-modder. Para la versión técnica que el framework consume, ver
+Complete spec of the manifest fields from the modder's perspective.
+For the technical version the framework consumes, see
 [../architecture/mod-manifest.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/mod-manifest.md).
 
 ---
 
-## Esqueleto completo
+## Full skeleton
 
 ```json
 {
@@ -40,84 +40,86 @@ modder. Para la versión técnica que el framework consume, ver
 
 ---
 
-## Campos uno a uno
+## Fields one by one
 
 ### `manifestVersion: 1`
 
-Versión del schema. Hoy solo `1`. Si el framework introduce una v2, los
-manifests v1 seguirán siendo aceptados (compat de N-2 versiones).
+Schema version. Today only `1`. If the framework introduces a v2,
+v1 manifests will keep being accepted (N-2 version compat).
 
 ### `id`
 
-Convención `<handle>.<modname>`. Lowercase + guiones. Inmutable —
-cambiarlo equivale a publicar un mod distinto.
+Convention `<handle>.<modname>`. Lowercase + dashes. Immutable —
+changing it is equivalent to publishing a different mod.
 
-Buenos ejemplos: `acme.power-explorer`, `studio.dark-mode`,
+Good examples: `acme.power-explorer`, `studio.dark-mode`,
 `juancho.snake-roguelike`.
 
 ### `version`
 
 SemVer (X.Y.Z). Bumps:
-- **patch**: bug fixes. Settings del jugador se mantienen.
-- **minor**: features no breaking. Settings se mantienen.
-- **major**: breaking change. **Settings se resetean** automáticamente
-  al actualizar. Avísalo en tu changelog.
+- **patch**: bug fixes. Player settings are preserved.
+- **minor**: non-breaking features. Settings preserved.
+- **major**: breaking change. **Settings reset** automatically on
+  update. Announce it in your changelog.
 
-Una vez publicada una versión, **NO** la sobrescribas con contenido
-distinto. Siempre publica versión nueva.
+Once a version is published, **DO NOT** overwrite it with
+different content. Always publish a new version.
 
 ### `target.gameId`
 
-ID del juego al que apunta. Lo encuentras en
-`docs/games/<id>/README.md` del repo del estudio. **No** uses el
-nombre comercial ni el AppID de Steam — usa el `gameId` lógico.
+ID of the target game. You'll find it in
+`docs/games/<id>/README.md` of the studio's repo. **Do not** use
+the commercial name nor the Steam AppID — use the logical
+`gameId`.
 
 ### `target.gameVersion`
 
-Rango SemVer. Convención: `^X.Y.Z` (compatible con cualquier minor/patch
-desde X.Y.Z). Mantén actualizado tras testear con versiones nuevas del
-juego.
+SemVer range. Convention: `^X.Y.Z` (compatible with any
+minor/patch from X.Y.Z). Keep updated after testing with newer
+versions of the game.
 
-### `engine.preferred` y `engine.fallbacks`
+### `engine.preferred` and `engine.fallbacks`
 
-Motor que tu mod necesita. Lo elige según lo que hace tu mod:
+Engine your mod needs. Choose based on what your mod does:
 
-- Si tu mod aporta tabs de settings (formularios) → `quickjs-declarative-ui`.
-- Si tu mod es lógica pura (eventos, transformaciones) →
-  `isolated-vm` (Electron) o `quickjs` (cross-platform).
-- Si tu mod aporta UI HTML rica → `iframe-sandbox`.
-- Si tu mod tiene visualización gráfica → `web-worker-offscreen-canvas`.
+- If your mod adds settings tabs (forms) → `quickjs-declarative-ui`.
+- If your mod is pure logic (events, transformations) →
+  `isolated-vm` (Electron) or `quickjs` (cross-platform).
+- If your mod adds rich HTML UI → `iframe-sandbox`.
+- If your mod has graphics visualization →
+  `web-worker-offscreen-canvas`.
 
-Lista de motores: [../engines/](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/engines/).
+Engine list: [../engines/](https://github.com/leteoworks/my-game-fw/tree/main/docs/mods/engines).
 
-`fallbacks` permite que tu mod funcione si el motor preferido no está
-disponible. Pon variantes razonables; lista vacía es válida pero
-restrictivo.
+`fallbacks` lets your mod work if the preferred engine isn't
+available. Pick reasonable variants; an empty list is valid but
+restrictive.
 
 ### `requires.hostApi`
 
-Rango SemVer de la host API del juego. Consulta el
-`host-api-changelog` del juego en `docs/games/<id>/`. Convención:
-`^X.Y.Z` con la mínima versión que tu mod necesita.
+SemVer range of the game's host API. Check the
+`host-api-changelog` of the game in `docs/games/<id>/`.
+Convention: `^X.Y.Z` with the minimum version your mod needs.
 
 ### `requires.dlcs`
 
-Lista de `dlcId`-s que el jugador debe tener owned. Si tu mod
-modifica contenido aportado por un DLC, decláralo. Mensajes al jugador
-claros si no tiene el DLC.
+List of `dlcId`s the player must own. If your mod modifies
+content provided by a DLC, declare it. Clear messages to the
+player if they don't own the DLC.
 
 ### `entry`
 
-Path al archivo JS que el motor carga. Convención: `dist/mod.js`.
-Debe ser un bundle pre-compilado (el framework no hace module
-resolution). Tamaño máx: 2 MiB.
+Path to the JS file the engine loads. Convention: `dist/mod.js`.
+Must be a pre-compiled bundle (the framework doesn't do module
+resolution). Max size: 2 MiB.
 
 ### `permissions`
 
-Array de objetos, cada uno con `type`, fields específicos y
-`rationale` (string corta que el jugador ve).
+Array of objects, each with `type`, type-specific fields, and
+`rationale` (short string the player sees).
 
-Categorías canónicas:
+Canonical categories:
 
 ```js
 { type: 'events', subscribe: ['SCORE_*'], dispatch: ['MOD_*'], rationale: '...' }
@@ -135,14 +137,14 @@ Categorías canónicas:
 { type: 'game-specific', surface: 'speedCurve', actions: ['setBase'], rationale: '...' }
 ```
 
-**Rationale matters**: el jugador la lee antes de aceptar. Un rationale
-útil ("Lee tu puntuación final para añadirla al recap del mod") gana
-instalaciones; uno trivial ("for fun") los pierde.
+**Rationale matters**: the player reads it before accepting. A
+useful rationale ("Reads your final score to add it to the mod
+recap") wins installs; a trivial one ("for fun") loses them.
 
-### `analytics.events` (opcional)
+### `analytics.events` (optional)
 
-Catálogo de eventos custom que tu mod puede emitir. Cada uno con
-nombre, descripción y schema (tipos por prop):
+Catalog of custom events your mod can emit. Each one with name,
+description, and schema (types per prop):
 
 ```json
 {
@@ -150,7 +152,7 @@ nombre, descripción y schema (tipos por prop):
     "events": [
       {
         "name": "preset_applied",
-        "description": "Jugador aplicó un preset de configuración",
+        "description": "Player applied a configuration preset",
         "schema": { "presetName": "string" }
       }
     ]
@@ -158,20 +160,21 @@ nombre, descripción y schema (tipos por prop):
 }
 ```
 
-Máximo 20 eventos por mod (configurable por el juego).
+Maximum 20 events per mod (configurable by the game).
 
-Los eventos `mod.framework.*` (engagement, fault, perf, etc.) los
-emite el runtime automáticamente — tu mod no tiene que declararlos.
+The `mod.framework.*` events (engagement, fault, perf, etc.) are
+emitted by the runtime automatically — your mod doesn't have to
+declare them.
 
 ### `metadata`
 
-Información visible al jugador en la UI:
+Information visible to the player in the UI:
 
 ```json
 {
-  "name": "Tu Mod",
-  "description": "Qué hace tu mod en una o dos frases (max 500 chars).",
-  "author": "Tu nombre o handle",
+  "name": "Your Mod",
+  "description": "What your mod does in one or two sentences (max 500 chars).",
+  "author": "Your name or handle",
   "homepage": "https://your-site.com/your-mod",
   "donateUrl": "https://ko-fi.com/your-handle",
   "license": "MIT",
@@ -185,60 +188,62 @@ Información visible al jugador en la UI:
 }
 ```
 
-`description` se sanitiza (solo plain text). `tags` máx 5.
-`screenshots` máx 5.
+`description` is sanitized (plain text only). `tags` max 5.
+`screenshots` max 5.
 
-### `donateUrl` — apoyo económico al autor (opcional)
+### `donateUrl` — financial support for the author (optional)
 
-Si declaras `donateUrl`, el juego muestra un botón **"Apoyar al
-autor"** en `Settings → Mods → <tu mod>` que abre la URL en el
-navegador externo del jugador.
+If you declare `donateUrl`, the game shows a **"Support author"**
+button in `Settings → Mods → <your mod>` that opens the URL in
+the player's external browser.
 
-- **Solo HTTPS**: el schema Zod rechaza `http://` y custom schemes
-  por seguridad (anti-phishing). El runtime valida también en
-  tiempo de apertura.
-- **Providers comunes**: Patreon, Ko-fi, GitHub Sponsors,
-  BuyMeACoffee, Liberapay, OpenCollective. El estudio no endorse-a
-  ninguno — tú eliges.
-- **Mecanismo recomendado**: Steam deprecó paid mods directos en
-  2015. Donaciones externas son hoy el patrón canónico para que la
-  comunidad apoye económicamente a sus modders favoritos sin
-  overhead legal del estudio.
-- **NO uses esto para crowdfunding o ventas**: el botón se llama
-  "Apoyar al autor" y los jugadores entienden eso como donación
-  voluntaria. Si quieres vender contenido, el camino es el sistema
-  DLC del estudio (curado, opt-in, ver `architecture/dlc-interop.md`).
-- **Localización**: el label del botón se traduce automáticamente a
-  los locales del juego. El modder no tiene que aportar nada extra.
+- **HTTPS only**: the Zod schema rejects `http://` and custom
+  schemes for security (anti-phishing). The runtime also
+  validates at open time.
+- **Common providers**: Patreon, Ko-fi, GitHub Sponsors,
+  BuyMeACoffee, Liberapay, OpenCollective. The studio doesn't
+  endorse any — you pick.
+- **Recommended mechanism**: Steam deprecated direct paid mods in
+  2015. External donations are now the canonical pattern for the
+  community to financially support their favorite modders
+  without the studio's legal overhead.
+- **DO NOT use this for crowdfunding or sales**: the button is
+  labeled "Support author" and players understand that as a
+  voluntary donation. If you want to sell content, the path is
+  the studio's DLC system (curated, opt-in, see
+  `architecture/dlc-interop.md`).
+- **Localization**: the button label is automatically translated
+  to the game's locales. The modder doesn't have to add
+  anything extra.
 
-### `signature` (opcional)
+### `signature` (optional)
 
-Firma opcional. Si tu mod va a Steam Workshop, Steam le añade su flow
-de verificación; si quieres firmar adicionalmente (recomendado para
-mods con permisos elevados), ver
+Optional signature. If your mod goes to Steam Workshop, Steam
+adds its own verification flow; if you want to additionally sign
+(recommended for mods with elevated permissions), see
 [publishing.md](publishing.md).
 
 ---
 
-## Errores comunes al validar
+## Common validation errors
 
-| Error | Causa |
+| Error | Cause |
 |---|---|
-| "id no matches regex" | Mayúsculas, caracteres especiales, o falta el `.` separador |
-| "version is not SemVer" | Usaste algo como `1.0` o `v1.0.0` |
-| "rationale missing for permission" | Cada permiso necesita `rationale` no vacío |
-| "engine.preferred not in catalog" | Typo o motor inexistente |
-| "entry file > 2MiB" | Bundle demasiado grande; revisa qué metiste |
-| "manifestVersion unsupported" | Usa `1` mientras no se anuncie v2 |
+| "id doesn't match regex" | Uppercase, special characters, or missing `.` separator |
+| "version is not SemVer" | You used something like `1.0` or `v1.0.0` |
+| "rationale missing for permission" | Every permission needs non-empty `rationale` |
+| "engine.preferred not in catalog" | Typo or non-existent engine |
+| "entry file > 2MiB" | Bundle too large; review what you included |
+| "manifestVersion unsupported" | Use `1` until v2 is announced |
 
 ---
 
-## Resumen
+## Summary
 
-- `mod.json` declara identidad, target, motor, permisos (con
-  rationale), metadatos.
-- `id` y `version` inmutables / monotónicos.
-- Cada permiso con `rationale` no trivial — es lo primero que el
-  jugador lee.
-- Eventos custom de analytics declarados en `analytics.events`.
-- Metadata + screenshots = lo que vende tu mod en Workshop.
+- `mod.json` declares identity, target, engine, permissions (with
+  rationale), metadata.
+- `id` and `version` are immutable / monotonic.
+- Every permission needs non-trivial `rationale` — it's the first
+  thing the player reads.
+- Custom analytics events declared in `analytics.events`.
+- Metadata + screenshots = what sells your mod in Workshop.

@@ -5,28 +5,27 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Lección 5 — Llevar tu mod a Workshop
+# Lesson 5 — Release to Workshop
 
-Objetivo: convertir tu mod en producto release-ready y subirlo a
-Steam Workshop para que cualquier jugador del juego pueda
-subscribirlo. Incluye i18n, icono, validación local, packaging y
-upload.
+Goal: turn your mod into a release-ready product and upload it to
+Steam Workshop so any player of the game can subscribe to it.
+Covers i18n, icon, local validation, packaging, and upload.
 
-> Doc de referencia operacional: [`publishing.md`](../publishing.md)
-> cubre el detalle de Workshop (visibility, tags, verification
-> tiers). Esta lección es el "checklist incremental" sobre tu mod
-> de la Lección 4.
+> Operational reference doc: [`publishing.md`](../publishing.md)
+> covers the Workshop detail (visibility, tags, verification
+> tiers). This lesson is the "incremental checklist" over your
+> mod from Lesson 4.
 
 ---
 
-## 1 — Internacionalización (i18n)
+## 1 — Internationalization (i18n)
 
-Hasta ahora has usado `t(key, fallback)` con `host.i18n?.t()`. Si
-nunca registras locales, el fallback en inglés/español de los
-strings literales del código es lo que el jugador ve. Si sí los
-registras, el juego respeta el idioma del jugador.
+Up to now you've been using `t(key, fallback)` with
+`host.i18n?.t()`. If you never register locales, what the player
+sees is the literal English/Spanish fallback from your code. If
+you do register them, the game respects the player's language.
 
-### Estructura
+### Structure
 
 ```
 my-mod/
@@ -74,71 +73,70 @@ my-mod/
 }
 ```
 
-### Declarar el namespace en `mod.json`
+### Declare the namespace in `mod.json`
 
-Ya lo tenías:
+You already had it:
 
 ```json
 {
   "type": "i18n",
   "namespaces": ["mymod"],
-  "rationale": "Traduce los labels a varios idiomas."
+  "rationale": "Translate labels to multiple languages."
 }
 ```
 
-**Regla clave**: cualquier key que registres debe empezar por el
-namespace declarado (`mymod.*`). El framework rechaza keys fuera
-del namespace para evitar que un mod pise traducciones del juego o
-de otro mod.
+**Key rule**: any key you register must start with the declared
+namespace (`mymod.*`). The framework rejects keys outside the
+namespace to prevent a mod from stepping on game translations or
+other mods'.
 
 ### Fallback chain
 
-Cuando un jugador en `fr` activa tu mod, el framework busca:
-1. `locales/fr.json` → si existe, lo usa.
-2. `locales/en.json` → fallback canónico.
-3. `fallback` literal del código → último recurso.
+When a player in `fr` activates your mod, the framework looks up:
+1. `locales/fr.json` → if it exists, use it.
+2. `locales/en.json` → canonical fallback.
+3. `fallback` literal from code → last resort.
 
-Sin `fr.json` registrado, los strings aparecen en inglés. Sin
-`en.json`, en lo que pase a `fallback` del código. Robusto por
-diseño.
+Without `fr.json` registered, strings appear in English. Without
+`en.json`, in whatever the code's `fallback` is. Robust by
+design.
 
 ---
 
-## 2 — Icono del mod
+## 2 — Mod icon
 
-`mod.json` con `metadata.icon`:
+`mod.json` with `metadata.icon`:
 
 ```json
 "metadata": {
   "name": "Power-Up Mixer",
-  "description": "Personaliza qué power-ups aparecen en Snake.",
-  "author": "Tu Nombre",
+  "description": "Customize which power-ups appear in Snake.",
+  "author": "Your Name",
   "license": "MIT",
   "icon": "icon.png",
   "tags": ["customization", "snake-classic", "power-ups"]
 }
 ```
 
-Crea `icon.png` en la raíz del mod:
-- **Dimensiones**: 256×256 px.
-- **Formato**: PNG con transparencia opcional.
-- **Tamaño**: <100 KB (recomendado <50 KB).
-- **Estilo**: legible a 64×64 (la lista de mods lo muestra
-  pequeño).
+Create `icon.png` at the root of the mod:
+- **Dimensions**: 256×256 px.
+- **Format**: PNG with optional transparency.
+- **Size**: <100 KB (recommended <50 KB).
+- **Style**: legible at 64×64 (mod list shows it small).
 
-El validator (paso 4) rechaza icons >1 MB o con dimensiones
-sospechosas.
+The validator (step 4) rejects icons >1 MB or with suspicious
+dimensions.
 
 ---
 
-## 3 — Manifest pulido
+## 3 — Polished manifest
 
-Antes de publicar, revisa `mod.json`:
+Before publishing, review `mod.json`:
 
 ```json
 {
   "manifestVersion": 1,
-  "id": "tuhandle.power-up-mixer",
+  "id": "yourhandle.power-up-mixer",
   "version": "1.0.0",
   "target": { "gameId": "snake-classic", "gameVersion": "^1.0.0" },
   "engine": {
@@ -151,112 +149,113 @@ Antes de publicar, revisa `mod.json`:
     {
       "type": "settings-ui",
       "maxTabs": 1,
-      "rationale": "Tab para configurar 22 toggles + slider + 3 presets."
+      "rationale": "Tab to configure 22 toggles + slider + 3 presets."
     },
     {
       "type": "game-specific",
       "surface": "tunables",
       "actions": ["set", "reset"],
-      "rationale": "Activa/desactiva cada power-up individualmente."
+      "rationale": "Enables/disables each power-up individually."
     },
     {
       "type": "storage",
       "quotaKb": 32,
-      "rationale": "Guarda la selección del jugador."
+      "rationale": "Saves the player's selection."
     },
     {
       "type": "i18n",
       "namespaces": ["mymod"],
-      "rationale": "Traduce labels a múltiples idiomas."
+      "rationale": "Translates labels to multiple languages."
     },
     {
       "type": "events",
       "subscribe": ["MYMOD_APPLY_PRESET"],
       "dispatch": ["MOD_NOTIFICATION"],
-      "rationale": "Aplica presets y notifica al jugador."
+      "rationale": "Applies presets and notifies the player."
     }
   ],
   "metadata": {
     "name": "Power-Up Mixer",
-    "description": "Personaliza qué power-ups aparecen + 3 presets one-click.",
-    "author": "Tu Nombre",
-    "homepage": "https://github.com/tuhandle/power-up-mixer",
+    "description": "Customize which power-ups appear + 3 one-click presets.",
+    "author": "Your Name",
+    "homepage": "https://github.com/yourhandle/power-up-mixer",
     "license": "MIT",
     "icon": "icon.png",
     "tags": ["customization", "snake-classic", "power-ups"]
   },
-  "donateUrl": "https://patreon.com/tuhandle"
+  "donateUrl": "https://patreon.com/yourhandle"
 }
 ```
 
-### Notas
-- `version: "1.0.0"`: SemVer estricto. Subes patch (`1.0.1`) para
-  bugfix, minor (`1.1.0`) para features nuevas, major (`2.0.0`)
-  cuando rompes compat.
-- `homepage`: opcional. Si la rellenas, aparece como link en la
-  card del mod.
-- `donateUrl`: opcional. Si la rellenas, aparece un botón "Apoyar
-  al autor" en la card. HTTPS-only, validado por el framework.
-- `tags`: ayudan al descubrimiento. Sin convención obligatoria
-  pero respeta los tags del juego target (ver `publishing.md`).
+### Notes
+- `version: "1.0.0"`: strict SemVer. Bump patch (`1.0.1`) for
+  bugfixes, minor (`1.1.0`) for new features, major (`2.0.0`)
+  when you break compatibility.
+- `homepage`: optional. If you fill it in, it appears as a link
+  on the mod's card.
+- `donateUrl`: optional. If you fill it in, an "Support author"
+  button appears on the card. HTTPS-only, validated by the
+  framework.
+- `tags`: help discovery. No mandatory convention but respect the
+  target game's tags (see `publishing.md`).
 
 ---
 
-## 4 — Validación local
+## 4 — Local validation
 
-Antes de empaquetar, pasa el validator:
+Before packaging, run the validator:
 
 ```bash
-# Desde el monorepo del framework (clona si no lo tienes):
-pnpm mods:validate /ruta/a/mi-mod
+# From the framework monorepo (clone if you don't have it):
+pnpm mods:validate /path/to/my-mod
 ```
 
-El validator hace todos estos checks sin necesitar el juego:
-- `mod.json` shape válido (Zod schema).
-- Permisos coherentes (todos con `rationale` no vacío).
-- `entry` apunta a un archivo que existe.
+The validator runs all these checks without needing the game:
+- Valid `mod.json` shape (Zod schema).
+- Coherent permissions (all with non-empty `rationale`).
+- `entry` points to an existing file.
 - `dist/mod.js` <500 KB.
-- Icon <1 MB con dimensiones razonables.
-- Locales JSON parseables.
-- Keys de locales empiezan por los `namespaces` declarados.
-- **App Store §3.3.2 compliance** (sin `eval`, sin `Function`
-  constructor, sin imports dinámicos arbitrarios — el motor del
-  runtime los bloquearía igual pero el validator lo caza ANTES de
-  subir a App Store).
+- Icon <1 MB with reasonable dimensions.
+- Parseable locale JSON.
+- Locale keys start with the declared `namespaces`.
+- **App Store §3.3.2 compliance** (no `eval`, no `Function`
+  constructor, no arbitrary dynamic imports — the runtime engine
+  would block them anyway, but the validator catches them BEFORE
+  uploading to App Store).
 
-Si pasa todo, ✅. Si falla, te dice qué corregir.
+If everything passes, ✅. If it fails, it tells you what to fix.
 
 ---
 
-## 5 — Build release
+## 5 — Release build
 
 ```bash
 pnpm build:release
 ```
 
-Diferencias respecto a `pnpm build` (dev):
-- Minificado (~5-15 KB típico).
-- Source map separado en `dist/mod.js.map` (opcional incluir).
-- Sin `console.log` ni `debug` (esbuild dropea identificadores).
+Differences vs `pnpm build` (dev):
+- Minified (~5-15 KB typical).
+- Separate source map in `dist/mod.js.map` (optional to include).
+- No `console.log` or `debug` (esbuild drops these identifiers).
 
-Verifica el output:
+Verify the output:
 
 ```bash
 ls -la dist/
 # mod.js   13 KB
-# mod.js.map  28 KB (opcional)
+# mod.js.map  28 KB (optional)
 ```
 
 ---
 
-## 6 — Empaquetar
+## 6 — Pack
 
 ```bash
 pnpm pack
 ```
 
-Genera `dist/<modId>-<version>.zip` con la estructura mínima que
-Steam Workshop espera:
+Generates `dist/<modId>-<version>.zip` with the minimum structure
+Steam Workshop expects:
 
 ```
 power-up-mixer-1.0.0.zip
@@ -269,97 +268,96 @@ power-up-mixer-1.0.0.zip
 └── icon.png
 ```
 
-NO incluye `src/`, `node_modules/`, `package.json`, `build.mjs`,
-`.git/`. Solo el bundle final.
+It does NOT include `src/`, `node_modules/`, `package.json`,
+`build.mjs`, `.git/`. Only the final bundle.
 
-> Tamaño esperado: 50-500 KB. Workshop tiene límite 100 MB por
-> item — fácil de cumplir.
+> Expected size: 50-500 KB. Workshop has a 100 MB per item limit
+> — easy to meet.
 
 ---
 
-## 7 — Subir a Steam Workshop
+## 7 — Upload to Steam Workshop
 
-> Prerrequisito: tener Steam instalado y haber comprado el juego
-> (Snake Classic).
+> Prerequisite: Steam installed and you own the game (Snake
+> Classic).
 
-1. Abre Steam → biblioteca → Snake Classic → Community Hub.
-2. En la columna lateral: **Workshop** → **Create Item**.
-3. Steam abre un formulario nativo:
-   - **Title**: nombre del mod (puedes copiar de `metadata.name`).
-   - **Description**: markdown básico permitido. Pega el README de
-     tu mod si lo tienes; sino una explicación 2-3 párrafos.
-   - **Preview image**: el icono `icon.png` u otra 800×450 mejor
-     para listing.
-   - **Tags**: marca los relevantes del catálogo del juego.
-   - **Visibility**: empieza en **Hidden** (solo tú). Lo cambias a
-     **Public** cuando esté listo.
-   - **Content**: drag & drop del ZIP del paso 6.
+1. Open Steam → library → Snake Classic → Community Hub.
+2. In the side column: **Workshop** → **Create Item**.
+3. Steam opens a native form:
+   - **Title**: mod name (you can copy from `metadata.name`).
+   - **Description**: basic markdown allowed. Paste your mod's
+     README if you have one; otherwise a 2-3 paragraph
+     explanation.
+   - **Preview image**: the `icon.png` or another 800×450 for
+     better listing.
+   - **Tags**: mark the relevant ones from the game's catalog.
+   - **Visibility**: start at **Hidden** (only you). Change to
+     **Public** when ready.
+   - **Content**: drag & drop the ZIP from step 6.
 4. Submit.
-5. Steam te asigna un **Workshop ID** (entero). Ese ID identifica
-   tu item para siempre.
-6. Para test: subscribe desde tu cuenta. Abre el juego. Tu mod
-   aparece en Settings → Mods → "Workshop" como instalado.
-7. Si todo va bien: vuelve a Workshop, cambia visibility a
+5. Steam assigns a **Workshop ID** (integer). That ID identifies
+   your item forever.
+6. To test: subscribe from your account. Open the game. Your mod
+   appears in Settings → Mods → "Workshop" as installed.
+7. If everything works: go back to Workshop, change visibility to
    **Public**.
 
 ---
 
-## 8 — Actualizaciones (releases siguientes)
+## 8 — Updates (subsequent releases)
 
-Para subir una versión nueva:
+To upload a new version:
 
-1. Bump `version` en `mod.json` (`1.0.0` → `1.0.1`).
+1. Bump `version` in `mod.json` (`1.0.0` → `1.0.1`).
 2. `pnpm build:release && pnpm pack`.
-3. Workshop → tu item → **Update Item** → drag & drop del nuevo
+3. Workshop → your item → **Update Item** → drag & drop the new
    ZIP.
-4. Optional: actualiza descripción / changelog.
+4. Optional: update description / changelog.
 
-Steam auto-actualiza el ZIP en todos los jugadores subscritos. Tu
-juego al arrancar detecta la nueva versión y la carga.
+Steam auto-updates the ZIP on all subscribed players. Your game
+on startup detects the new version and loads it.
 
 ---
 
-## Checklist final
+## Final checklist
 
-Antes de cambiar a Public:
+Before switching to Public:
 
-- [ ] `mod.json` con `id`, `version`, `target`, `metadata.name`,
-      `metadata.description` no triviales.
-- [ ] Cada permiso con `rationale` no vacío y honesto.
-- [ ] `locales/en.json` registrado como mínimo.
+- [ ] `mod.json` with non-trivial `id`, `version`, `target`,
+      `metadata.name`, `metadata.description`.
+- [ ] Every permission with non-empty, honest `rationale`.
+- [ ] `locales/en.json` registered at minimum.
 - [ ] `icon.png` 256×256 <100 KB.
 - [ ] `pnpm mods:validate` ✅.
 - [ ] `pnpm build:release` ✅.
-- [ ] Test local: sideload + activate + jugar partida real.
-- [ ] Steam Workshop item con Title + Description + Preview.
-- [ ] Test desde subscriber (tu cuenta): instalar desde Workshop
-      y verificar que funciona.
+- [ ] Local test: sideload + activate + play a real game.
+- [ ] Steam Workshop item with Title + Description + Preview.
+- [ ] Test as subscriber (your account): install from Workshop
+      and verify it works.
 - [ ] Visibility → Public.
 
 ---
 
-## Próximos pasos
+## What's next
 
-Has terminado el tutorial básico. Ahora:
+You've finished the basic tutorial. Now:
 
-- [**Cookbook**](../cookbook.md) — recetas copy-paste para
-  problemas comunes (presets, throttle, multi-mod coordination,
-  etc.).
-- [**Troubleshooting**](../troubleshooting.md) — diagnóstico de
-  síntomas comunes ("mi mod no aparece", "tab vacío", "permission
-  denied", etc.).
-- [**`api-reference.md`**](../api-reference.md) — catálogo completo
-  de `host.*` para profundizar.
-- [**`publishing.md`**](../publishing.md) — detalles de Workshop
-  más allá del flow básico (verification tiers, kill-switch,
+- [**Cookbook**](../cookbook.md) — copy-paste recipes for common
+  problems (presets, throttle, multi-mod coordination, etc.).
+- [**Troubleshooting**](../troubleshooting.md) — diagnosis for
+  common symptoms ("my mod doesn't appear", "empty tab",
+  "permission denied", etc.).
+- [**`api-reference.md`**](../api-reference.md) — full `host.*`
+  catalog to go deep.
+- [**`publishing.md`**](../publishing.md) — Workshop details
+  beyond the basic flow (verification tiers, kill-switch,
   donations, featured mods).
 
-## Mods de referencia (código real, no juguete)
+## Reference mods (real production code, not toys)
 
 - [`studio.fun-config`](https://github.com/leteoworks/my-game-fw-mods/tree/main/snake-classic/studio.fun-config)
-  — 22 toggles + 3 presets, ~250 líneas de TS bien estructurado.
+  — 22 toggles + 3 presets, ~250 lines of well-structured TS.
 - [`studio.gameplay-tuner`](https://github.com/leteoworks/my-game-fw-mods/tree/main/snake-classic/studio.gameplay-tuner)
-  — sliders cuantitativos + presets Easy/Normal/Hard,
-  ~200 líneas.
+  — quantitative sliders + Easy/Normal/Hard presets, ~200 lines.
 
-Léelos cuando dudes "¿cómo se hace X en producción?".
+Read them when you wonder "how is X done in production?".

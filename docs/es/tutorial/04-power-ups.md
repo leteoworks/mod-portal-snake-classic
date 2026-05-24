@@ -5,30 +5,30 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Lesson 4 — Customize power-ups (Snake-specific)
+# Lección 4 — Personalizar power-ups (Snake-specific)
 
-Goal: add 22 toggles to your mod (one per Snake power-up) that the
-player can enable/disable individually, plus a slider controlling
-the global spawn frequency. Canonical pattern: **array of
-definitions → auto-generated UI**.
+Objetivo: añadir a tu mod 22 toggles (uno por power-up de Snake)
+que el jugador puede activar/desactivar individualmente, más un
+slider que controla la frecuencia de spawn global. Patrón canónico:
+**array de definiciones → UI auto-generada**.
 
-> Disclaimer: this lesson is **specific to Snake Classic**. Every
-> mod-compatible game exposes its own tunables. What you learn
-> here (array→UI pattern, `callHostFn` per toggle, preset that
-> applies a set) is transferable — only the names change.
+> Disclaimer: esta lección es **específica de Snake Classic**. Cada
+> juego mod-compatible expone sus tunables propios. Lo que aprendes
+> aquí (patrón array→UI, callHostFn por toggle, preset que aplica
+> un set) es transferible — solo cambian los nombres.
 >
-> 1:1 reference code: [`studio.fun-config`](https://github.com/leteoworks/my-game-fw-mods/tree/main/snake-classic/studio.fun-config)
-> does exactly what this lesson teaches, in production.
+> Código de referencia 1:1: [`studio.fun-config`](https://github.com/leteoworks/my-game-fw-mods/tree/main/snake-classic/studio.fun-config)
+> hace exactamente lo de esta lección en producción.
 
 ---
 
-## The Snake power-up catalog
+## El catálogo de power-ups de Snake
 
-Snake Classic has **22 power-ups**. Each is controlled by a
-boolean tunable `powerup<Name>Enabled`. If it's `false`, that
-power-up doesn't appear during play.
+Snake Classic tiene **22 power-ups**. Cada uno se controla con un
+tunable booleano `powerup<Name>Enabled`. Si está `false`, ese
+power-up no aparece en partida.
 
-| Internal ID | Name |
+| ID interno | Nombre |
 |---|---|
 | `powerupSpeedBoostEnabled` | Speed Boost |
 | `powerupInvincibilityEnabled` | Invincibility |
@@ -53,12 +53,12 @@ power-up doesn't appear during play.
 | `powerupRainbowHeartEnabled` | Rainbow Heart |
 | `powerupTimeTravelEnabled` | Time Travel |
 
-Plus an extra tunable `powerupIntervalMs` (number, 1000-30000)
-that controls **how often** a new power-up appears.
+Y un tunable extra `powerupIntervalMs` (number, 1000-30000) que
+controla **cada cuántos ms** aparece un nuevo power-up en pantalla.
 
 ---
 
-## 1 — Define the toggle array
+## 1 — Definir el array de toggles
 
 `src/toggles.ts`:
 
@@ -76,19 +76,18 @@ export const POWER_UP_TOGGLES: PowerUpToggle[] = [
     i18nKey: 'mymod.powerups.invincibility', fallback: 'Invincibility' },
   { binding: 'tunables.powerupDoublePointsEnabled',
     i18nKey: 'mymod.powerups.doublePoints', fallback: 'Double Points' },
-  // … 19 more
+  // … 19 más
   { binding: 'tunables.powerupTimeTravelEnabled',
     i18nKey: 'mymod.powerups.timeTravel', fallback: 'Time Travel' },
 ];
 ```
 
-The "array of definitions" pattern is the foundation. If the game
-adds a new power-up in a future version, you just extend the
-array.
+El patrón "array de definiciones" es la base. Si el juego añade un
+power-up nuevo en una futura versión, basta extender el array.
 
 ---
 
-## 2 — Build the tab dynamically
+## 2 — Construir el tab dinámicamente
 
 `src/settings-tab.ts`:
 
@@ -113,10 +112,10 @@ export function buildSettingsTab() {
     sections: [
       {
         kind: 'card',
-        title: t('mymod.section.spawn', 'Frequency'),
+        title: t('mymod.section.spawn', 'Frecuencia'),
         children: [{
           kind: 'slider',
-          label: t('mymod.spawn.label', 'Interval between power-ups (ms)'),
+          label: t('mymod.spawn.label', 'Intervalo entre power-ups (ms)'),
           min: 1000,
           max: 30000,
           step: 500,
@@ -125,7 +124,7 @@ export function buildSettingsTab() {
       },
       {
         kind: 'card',
-        title: t('mymod.section.toggles', 'Active power-ups'),
+        title: t('mymod.section.toggles', 'Power-ups activos'),
         children: toggleChildren,
       },
     ],
@@ -133,10 +132,10 @@ export function buildSettingsTab() {
 }
 ```
 
-Each toggle with `binding: 'tunables.powerup<X>Enabled'` is
-connected automatically: when the player flips it, the runtime
-calls `gameConfigSet({ name: 'powerup<X>Enabled', value: true|false })`
-with no code from you.
+Cada toggle con `binding: 'tunables.powerup<X>Enabled'` se conecta
+automáticamente: cuando el jugador lo cambia, el runtime llama a
+`gameConfigSet({ name: 'powerup<X>Enabled', value: true|false })`
+sin que tu código intervenga.
 
 `src/index.ts`:
 
@@ -145,45 +144,45 @@ import { buildSettingsTab } from './settings-tab';
 
 host.registerSettingsTab?.(buildSettingsTab());
 
-host.log.info('[mymod] Power-up mixer loaded.');
+host.log.info('[mymod] Power-up mixer cargado.');
 ```
 
 ---
 
-## 3 — Permissions in `mod.json`
+## 3 — Permisos en `mod.json`
 
 ```json
 "permissions": [
   {
     "type": "settings-ui",
     "maxTabs": 1,
-    "rationale": "Adds a tab to enable/disable power-ups."
+    "rationale": "Aporta un tab para activar/desactivar power-ups."
   },
   {
     "type": "game-specific",
     "surface": "tunables",
     "actions": ["set", "reset"],
-    "rationale": "Enables/disables each power-up individually."
+    "rationale": "Activa/desactiva cada power-up individualmente."
   },
   {
     "type": "storage",
     "quotaKb": 32,
-    "rationale": "Saves the player's selection."
+    "rationale": "Guarda la selección del jugador."
   },
   {
     "type": "i18n",
     "namespaces": ["mymod"],
-    "rationale": "Translates the labels of the 22 power-ups."
+    "rationale": "Traduce los labels de los 22 power-ups."
   }
 ]
 ```
 
 ---
 
-## 4 — Presets: apply a full set at once
+## 4 — Presets: aplicar un set completo de una vez
 
-Typical pattern: 3 buttons "Classic / Casual / Hardcore" that
-apply predefined combinations.
+Patrón típico: 3 botones "Classic / Casual / Hardcore" que aplican
+combinaciones predefinidas.
 
 `src/presets.ts`:
 
@@ -195,11 +194,11 @@ export const PRESETS: Record<PresetName, Record<string, boolean | number>> = {
     powerupSpeedBoostEnabled: true,
     powerupDoublePointsEnabled: true,
     powerupExtraLifeEnabled: true,
-    // rest false
+    // resto false
     powerupIntervalMs: 8000,
   },
   casual: {
-    // all benign power-ups ON
+    // todos los benignos ON
     powerupSpeedBoostEnabled: true,
     powerupInvincibilityEnabled: true,
     powerupMagnetEnabled: true,
@@ -209,7 +208,7 @@ export const PRESETS: Record<PresetName, Record<string, boolean | number>> = {
     powerupIntervalMs: 5000,
   },
   hardcore: {
-    // only hostile challenges
+    // solo los desafíos hostiles
     powerupBombPickupEnabled: true,
     powerupBlindfoldEnabled: true,
     powerupDemonEnabled: true,
@@ -219,7 +218,7 @@ export const PRESETS: Record<PresetName, Record<string, boolean | number>> = {
 };
 ```
 
-Buttons in the tab:
+Botones en el tab:
 
 ```ts
 {
@@ -261,7 +260,7 @@ host.subscribeEvent('MYMOD_APPLY_PRESET', async (payload) => {
   const name = (payload as { preset?: string })?.preset as PresetName;
   if (!PRESETS[name]) return;
 
-  // 1. Reset ALL toggles to false (clean state).
+  // 1. Reset TODOS los toggles a false (estado limpio).
   for (const toggle of POWER_UP_TOGGLES) {
     const tunableName = toggle.binding.replace(/^tunables\./, '');
     await host.callHostFn('gameConfigSet', {
@@ -269,41 +268,41 @@ host.subscribeEvent('MYMOD_APPLY_PRESET', async (payload) => {
     });
   }
 
-  // 2. Apply the preset (only the keys it defines).
+  // 2. Aplicar el preset (solo las keys que define).
   for (const [name, value] of Object.entries(PRESETS[name])) {
     await host.callHostFn('gameConfigSet', { name, value });
-    // Persist so the UI toggles reflect the state.
+    // Persistir para que los toggles de la UI muestren el estado.
     await host.storage?.set(`tunables.${name}`, value);
   }
 
   host.dispatch('MOD_NOTIFICATION', {
-    text: `Preset "${name}" applied.`,
+    text: `Preset "${name}" aplicado.`,
     kind: 'success',
   });
 });
 ```
 
-Extra permissions:
+Permisos extra:
 
 ```json
 {
   "type": "events",
   "subscribe": ["MYMOD_APPLY_PRESET"],
   "dispatch": ["MOD_NOTIFICATION"],
-  "rationale": "Reacts to preset buttons and notifies the player."
+  "rationale": "Reacciona a los botones de preset y notifica al jugador."
 }
 ```
 
 ---
 
-## 5 — Performance: apply in bulk
+## 5 — Performance: aplicar en bloque
 
-Each `callHostFn` crosses the sandbox boundary and costs ~0.5-1
-ms. Applying a preset does 22 calls (reset) + N calls (apply). To
-avoid freezing the UI:
+Cada `callHostFn` cruza el límite del sandbox y tiene un coste de
+~0.5-1 ms. Aplicar el preset hace 22 calls (reset) + N calls
+(apply). Para no congelar la UI:
 
 ```ts
-// Fire all promises and wait with Promise.all
+// Lanza todas las promesas y espera con Promise.all
 await Promise.all(
   POWER_UP_TOGGLES.map((t) =>
     host.callHostFn('gameConfigSet', {
@@ -314,40 +313,40 @@ await Promise.all(
 );
 ```
 
-Goes from ~22 ms serial to ~3-5 ms parallel. Valid pattern when
-host calls are idempotent (order doesn't matter) — as it is here.
+Pasa de ~22 ms serial a ~3-5 ms paralelo. Patrón válido cuando los
+host calls son idempotentes (orden no importa) — como aquí.
 
 ---
 
 ## 6 — Caveat: target.gameId
 
-This mod **only works in Snake Classic**. If you activate it in
-another framework game (Dices & Destiny, Pong…), `callHostFn`
-for Snake-specific tunables rejects with `not-found`. That's why
-you declare:
+Este mod **solo funciona en Snake Classic**. Si lo activas en otro
+juego del framework (Dices & Destiny, Pong…), `callHostFn` para los
+tunables específicos de Snake rechazará con `not-found`. Por eso
+declaras:
 
 ```json
 "target": { "gameId": "snake-classic", "gameVersion": "^1.0.0" }
 ```
 
-The loader refuses to activate the mod if `gameId` doesn't match.
-Zero silent crashes.
+El loader rechaza activar el mod si el `gameId` no coincide. Cero
+crash silencioso.
 
 ---
 
-## What you've learned
+## Lo que has aprendido
 
-- **Array → auto-generated UI pattern** — 22 toggles from a
-  22-definition array.
-- **`binding: 'tunables.<name>'`** connects automatically without
-  a handler.
-- **Presets as event + handler** applying N tunables in bulk with
-  `Promise.all`.
-- **`target.gameId`** prevents cross-game activation.
-- **`host.dispatch('MOD_NOTIFICATION')`** to confirm to the
-  player.
+- **Patrón array → UI auto-generada** — 22 toggles desde un array
+  de 22 definiciones.
+- **`binding: 'tunables.<name>'`** se conecta automático sin
+  handler.
+- **Presets como evento + handler** que aplica N tunables en
+  bloque con `Promise.all`.
+- **`target.gameId`** previene activación cross-game.
+- **`host.dispatch('MOD_NOTIFICATION')`** para confirmar al
+  jugador.
 
-## What's next
+## Lo que viene
 
-[**Lesson 5 — Release to Workshop**](05-release-ready.md). i18n,
-icon, local validation, pack, upload. Final checklist.
+[**Lección 5 — Llevar tu mod a Workshop**](05-release-ready.md).
+i18n, icono, validación local, pack, upload. Checklist de release.

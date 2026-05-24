@@ -5,52 +5,53 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Cookbook — recetas copy-paste
+# Cookbook — copy-paste recipes
 
-Soluciones a problemas concretos que aparecen al escribir mods.
-Cada receta es independiente — léelas en cualquier orden. Si nunca
-has escrito un mod, empieza por [`tutorial/`](tutorial/01-hello-mod.md).
+Solutions to concrete problems that come up while writing mods.
+Each recipe is independent — read them in any order. If you've
+never written a mod, start with
+[`tutorial/`](tutorial/01-hello-mod.md).
 
-> Convención: snippets en TypeScript. El motor del runtime evalúa
-> tu `dist/mod.js` bundleado, no tu TS directo. Usa `tsc` /
-> `esbuild` con `--target=es2020`.
-
----
-
-## Índice
-
-1. [Slider que cambia un valor del juego en tiempo real](#1)
-2. [Botón "Reset to defaults" que aplica N bindings de golpe](#2)
-3. [Registrar N toggles desde un array (boilerplate reduction)](#3)
-4. [Persistir un objeto JSON grande sin pasarse de quotaKb](#4)
-5. [Leer estado del juego + reaccionar a evento simultáneamente](#5)
-6. [Throttle de SCORE_CHANGED para evitar spam](#6)
-7. [i18n con namespace propio + fallback inglés](#7)
-8. [Cargar un icono custom (icon + screenshots para Workshop)](#8)
-9. [Coordinar UI binding con hook sin race](#9)
-10. [Custom analytics event declarado + tracked](#10)
+> Convention: snippets in TypeScript. The runtime engine evaluates
+> your bundled `dist/mod.js`, not your TS directly. Use `tsc` /
+> `esbuild` with `--target=es2020`.
 
 ---
 
-## 1 — Slider que cambia un valor del juego en tiempo real {#1}
+## Index
 
-**Problema**: Quiero un slider que controle la velocidad inicial de
-Snake. El cambio aplica en vivo Y persiste entre partidas.
+1. [Slider that tunes a game value in real time](#1)
+2. ["Reset to defaults" button applying N bindings at once](#2)
+3. [Register N toggles from an array (boilerplate reduction)](#3)
+4. [Persist a large JSON object without exceeding quotaKb](#4)
+5. [Read game state + react to event at the same time](#5)
+6. [Throttle SCORE_CHANGED to avoid spam](#6)
+7. [i18n with own namespace + English fallback](#7)
+8. [Load a custom icon (+ screenshots for Workshop)](#8)
+9. [Coordinate UI binding with hook without race](#9)
+10. [Custom analytics event declared + tracked](#10)
 
-**Receta**:
+---
+
+## 1 — Slider that tunes a game value in real time {#1}
+
+**Problem**: I want a slider that controls Snake's initial speed.
+The change applies live AND persists across games.
+
+**Recipe**:
 
 ```ts
 // settings-tab.ts
 {
   kind: 'slider',
-  label: 'Velocidad inicial (ms/tick)',
+  label: 'Initial speed (ms/tick)',
   min: 80, max: 500, step: 10,
   binding: 'tunables.initialSpeedTickMs',
 }
 ```
 
 ```ts
-// index.ts — solo re-aplicar al inicio de partida
+// index.ts — only re-apply at game start
 host.subscribeEvent('GAME_STARTED', async () => {
   const r = await host.storage?.get('tunables.initialSpeedTickMs');
   if (r?.ok && typeof r.value === 'number') {
@@ -62,29 +63,30 @@ host.subscribeEvent('GAME_STARTED', async () => {
 ```
 
 ```json
-// mod.json — permisos requeridos
+// mod.json — required permissions
 { "type": "game-specific", "surface": "tunables", "actions": ["set"], "rationale": "..." },
 { "type": "events", "subscribe": ["GAME_STARTED"], "rationale": "..." },
 { "type": "storage", "quotaKb": 16, "rationale": "..." }
 ```
 
-**Por qué funciona**: el prefijo `tunables.` en el binding
-conecta automáticamente la UI al juego vía `gameConfigSet`. El hook
-extra es solo defensivo para reinicios del juego.
+**Why it works**: the `tunables.` prefix in the binding
+automatically connects the UI to the game via `gameConfigSet`.
+The extra hook is just defensive against game restarts.
 
 ---
 
-## 2 — Botón "Reset to defaults" que aplica N bindings de golpe {#2}
+## 2 — "Reset to defaults" button applying N bindings at once {#2}
 
-**Problema**: 22 toggles. Botón que los pone todos a sus defaults.
+**Problem**: 22 toggles. Button that sets them all to their
+defaults.
 
-**Receta**:
+**Recipe**:
 
 ```ts
 const DEFAULT_TOGGLES: Record<string, boolean> = {
   powerupSpeedBoostEnabled: true,
   powerupInvincibilityEnabled: false,
-  // … 20 más
+  // … 20 more
 };
 
 host.subscribeEvent('MYMOD_RESET_DEFAULTS', async () => {
@@ -94,7 +96,7 @@ host.subscribeEvent('MYMOD_RESET_DEFAULTS', async () => {
     )
   );
 
-  // Persistir para que la UI refleje el estado.
+  // Persist so the UI reflects the state.
   await Promise.all(
     Object.entries(DEFAULT_TOGGLES).map(([name, value]) =>
       host.storage?.set(`tunables.${name}`, value)
@@ -102,23 +104,23 @@ host.subscribeEvent('MYMOD_RESET_DEFAULTS', async () => {
   );
 
   host.dispatch('MOD_NOTIFICATION', {
-    text: 'Defaults restaurados.', kind: 'info',
+    text: 'Defaults restored.', kind: 'info',
   });
 });
 ```
 
-**Clave**: `Promise.all` aplica los 22 calls en paralelo (~3-5 ms
-total) en vez de serial (~20 ms). Cuando los calls son
-idempotentes y sin orden, `Promise.all` siempre.
+**Key**: `Promise.all` applies the 22 calls in parallel (~3-5 ms
+total) instead of serially (~20 ms). When calls are idempotent
+and unordered, always `Promise.all`.
 
 ---
 
-## 3 — Registrar N toggles desde un array {#3}
+## 3 — Register N toggles from an array {#3}
 
-**Problema**: 22 power-ups. NO quiero escribir 22 bloques `{ kind:
-'toggle', label: ..., binding: ... }`.
+**Problem**: 22 power-ups. I DON'T want to write 22 blocks of
+`{ kind: 'toggle', label: ..., binding: ... }`.
 
-**Receta**:
+**Recipe**:
 
 ```ts
 interface Toggle { binding: string; label: string }
@@ -126,7 +128,7 @@ interface Toggle { binding: string; label: string }
 const TOGGLES: Toggle[] = [
   { binding: 'tunables.powerupSpeedBoostEnabled', label: 'Speed Boost' },
   { binding: 'tunables.powerupInvincibilityEnabled', label: 'Invincibility' },
-  // … 20 más
+  // … 20 more
 ];
 
 const children = TOGGLES.map((t) => ({
@@ -141,7 +143,7 @@ host.registerSettingsTab?.({
 });
 ```
 
-**Variante con i18n**:
+**Variant with i18n**:
 
 ```ts
 const TOGGLES = [
@@ -159,27 +161,27 @@ const children = TOGGLES.map((t) => ({
 
 ---
 
-## 4 — Persistir un objeto JSON grande sin pasarse de quotaKb {#4}
+## 4 — Persist a large JSON object without exceeding quotaKb {#4}
 
-**Problema**: `quotaKb: 32` en el manifest. Quiero guardar un
-objeto con N campos sin trocear.
+**Problem**: `quotaKb: 32` in the manifest. I want to save an
+object with N fields without splitting it.
 
-**Receta — comprime si te acercas al límite**:
+**Recipe — compress if you approach the limit**:
 
 ```ts
 const STORAGE_KEY = 'mymod.settings';
 
 async function persist(obj: object): Promise<void> {
   const serialized = JSON.stringify(obj);
-  // 32 KB = 32 * 1024 chars (~ — depende encoding).
+  // 32 KB = 32 * 1024 chars (~ — depends on encoding).
   if (serialized.length > 28 * 1024) {
     host.log.warn(
-      `[mymod] Settings cerca del límite: ${serialized.length} chars`,
+      `[mymod] Settings near limit: ${serialized.length} chars`,
     );
   }
   const r = await host.storage?.set(STORAGE_KEY, obj);
   if (!r?.ok) {
-    host.log.error(`[mymod] storage.set falló: ${r?.error?.message}`);
+    host.log.error(`[mymod] storage.set failed: ${r?.error?.message}`);
   }
 }
 
@@ -190,56 +192,56 @@ async function load<T>(defaults: T): Promise<T> {
 }
 ```
 
-**Patrón clave**: `{ ...defaults, ...stored }` rellena las keys
-nuevas con sus defaults cuando el storage tiene un objeto de una
-versión anterior. **Migración sin código de migración**.
+**Key pattern**: `{ ...defaults, ...stored }` fills new keys with
+their defaults when storage has an object from an older version.
+**Migration without migration code**.
 
-Si tu objeto crece más de quotaKb, refactoriza a múltiples keys
+If your object grows beyond quotaKb, refactor to multiple keys
 (`mymod.settings.toggles`, `mymod.settings.presets`, etc.).
 
 ---
 
-## 5 — Leer estado del juego + reaccionar a evento simultáneamente {#5}
+## 5 — Read game state + react to event at the same time {#5}
 
-**Problema**: cuando el jugador apila 100 puntos, quiero leer su
-nivel actual y decidir.
+**Problem**: when the player crosses 100 points, I want to read
+their current level and decide.
 
-**Receta**:
+**Recipe**:
 
 ```ts
 host.subscribeEvent('SCORE_CHANGED', async (payload) => {
   const score = (payload as { score?: number })?.score ?? 0;
   if (score < 100 || score % 100 !== 0) return;
 
-  // Leer nivel sin esperar a LEVEL_UP.
+  // Read level without waiting for LEVEL_UP.
   const levelResult = await host.state.read('game.level');
   if (!levelResult.ok) return;
 
   const level = levelResult.value as number;
   host.dispatch('MOD_NOTIFICATION', {
-    text: `Hito ${score} puntos en nivel ${level}!`,
+    text: `Milestone ${score} points at level ${level}!`,
     kind: 'success',
   });
 });
 ```
 
-**Permisos**:
+**Permissions**:
 
 ```json
 { "type": "events", "subscribe": ["SCORE_CHANGED"], "dispatch": ["MOD_NOTIFICATION"], "rationale": "..." },
 { "type": "state-read", "paths": ["game.level"], "rationale": "..." }
 ```
 
-`state-read.paths` debe ser explícito; wildcards rechazados.
+`state-read.paths` must be explicit; wildcards rejected.
 
 ---
 
-## 6 — Throttle de SCORE_CHANGED para evitar spam {#6}
+## 6 — Throttle SCORE_CHANGED to avoid spam {#6}
 
-**Problema**: `SCORE_CHANGED` puede emitirse 10× por segundo. Mi
-handler hace storage.set — debe limitarse.
+**Problem**: `SCORE_CHANGED` may emit 10× per second. My handler
+does storage.set — it needs to be limited.
 
-**Receta**:
+**Recipe**:
 
 ```ts
 let lastSync = 0;
@@ -255,7 +257,7 @@ host.subscribeEvent('SCORE_CHANGED', async (payload) => {
 });
 ```
 
-**Variante "debounce" (espera N ms tras último evento)**:
+**"Debounce" variant (wait N ms after last event)**:
 
 ```ts
 let timer: number | null = null;
@@ -269,20 +271,21 @@ host.subscribeEvent('SCORE_CHANGED', (payload) => {
 });
 ```
 
-Throttle = "máx 1 cada N". Debounce = "espera hasta que pare N ms".
+Throttle = "max 1 every N". Debounce = "wait until quiet for N
+ms".
 
 ---
 
-## 7 — i18n con namespace propio + fallback inglés {#7}
+## 7 — i18n with own namespace + English fallback {#7}
 
-**Problema**: Quiero que mi mod se vea en el idioma del jugador.
+**Problem**: I want my mod to render in the player's language.
 
-**Receta**:
+**Recipe**:
 
 ```
 my-mod/
 ├── locales/
-│   ├── en.json    # canónico (fallback)
+│   ├── en.json    # canonical (fallback)
 │   ├── es.json
 │   └── fr.json
 ```
@@ -297,33 +300,33 @@ function t(key: string, fallback: string): string {
   return host.i18n?.t(key) ?? fallback;
 }
 
-// Uso
+// Usage
 const label = t('mymod.tab.title', 'My Mod');
 ```
 
-**Reglas**:
-- Todas las keys empiezan por el namespace (`mymod.*`). El
-  framework rechaza fuera de namespace.
-- Cadena fallback: `t(key, fallback)` → si el locale del jugador
-  no tiene `key`, intenta `en.json`. Si tampoco está, devuelve
-  `fallback` (literal del código).
-- `en.json` es el canónico — siempre regístralo aunque no traduzcas
-  a más idiomas.
+**Rules**:
+- All keys start with the namespace (`mymod.*`). The framework
+  rejects out-of-namespace keys.
+- Fallback chain: `t(key, fallback)` → if the player's locale
+  doesn't have `key`, it tries `en.json`. If that's also missing,
+  it returns `fallback` (code literal).
+- `en.json` is canonical — always register it even if you don't
+  translate to more languages.
 
 ---
 
-## 8 — Cargar icono custom + screenshots para Workshop {#8}
+## 8 — Custom icon + screenshots for Workshop {#8}
 
-**Problema**: Quiero que mi mod tenga su propio icono visible en
-Settings y screenshots en Workshop.
+**Problem**: I want my mod to have its own icon visible in
+Settings and screenshots in Workshop.
 
-**Receta**:
+**Recipe**:
 
 ```
 my-mod/
 ├── icon.png            # 256x256, <100 KB
-├── screenshots/         # para Workshop (opcional)
-│   ├── 01.png          # 1920x1080 recomendado
+├── screenshots/         # for Workshop (optional)
+│   ├── 01.png          # 1920x1080 recommended
 │   ├── 02.png
 │   └── 03.png
 └── mod.json
@@ -337,31 +340,32 @@ my-mod/
 }
 ```
 
-El campo `metadata.icon` debe ser un path relativo a la raíz del
-mod. El framework valida formato + tamaño.
+The `metadata.icon` field must be a path relative to the mod's
+root. The framework validates format + size.
 
-Para los screenshots, **no van en mod.json** — los subes
-directamente en el formulario de Workshop al crear el item.
+For screenshots, **they don't go in mod.json** — you upload them
+directly in the Workshop form when creating the item.
 
 ---
 
-## 9 — Coordinar UI binding con hook sin race {#9}
+## 9 — Coordinate UI binding with hook without race {#9}
 
-**Problema**: tengo un binding `'tunables.maxLives'` (la UI escribe
-al juego) Y un hook `GAME_STARTED` que reaplica. ¿No es race?
+**Problem**: I have a `'tunables.maxLives'` binding (UI writes to
+the game) AND a `GAME_STARTED` hook that re-applies. Isn't that
+a race?
 
-**Receta — el patrón canónico**:
+**Recipe — the canonical pattern**:
 
 ```ts
-// Solo el hook escribe al juego. El binding solo persiste al
-// storage del mod. Sin race posible.
+// Only the hook writes to the game. The binding only persists to
+// the mod's storage. No race possible.
 host.registerSettingsTab?.({
   // …
   children: [{
     kind: 'slider',
-    label: 'Vidas',
+    label: 'Lives',
     min: 1, max: 50,
-    binding: 'mymod.maxLives',  // ← SIN prefijo tunables.
+    binding: 'mymod.maxLives',  // ← NO tunables. prefix
   }],
 });
 
@@ -375,29 +379,30 @@ host.subscribeEvent('GAME_STARTED', async () => {
 });
 ```
 
-Aquí el slider escribe a `mymod.maxLives` (storage interno del
-mod). El juego SOLO ve el cambio en `GAME_STARTED`. Cero race.
+Here the slider writes to `mymod.maxLives` (mod's internal
+storage). The game ONLY sees the change at `GAME_STARTED`. Zero
+race.
 
-**Alternativa — solo binding**:
+**Alternative — only binding**:
 
 ```ts
-// La UI aplica al juego en vivo, el hook NO existe. El cambio se
-// pierde si el jugador cierra y reabre el juego.
+// The UI applies to the game live, NO hook. The value is "lost"
+// between sessions if the player closes and reopens the game.
 binding: 'tunables.maxLives',
 ```
 
-Cuando aceptable: si el jugador siempre pasa por Settings antes de
-empezar la partida, o si quieres que el valor "no persista" entre
-sesiones.
+When acceptable: if the player always goes through Settings
+before starting a game, or if you want the value "not to
+persist" across sessions.
 
 ---
 
-## 10 — Custom analytics event declarado + tracked {#10}
+## 10 — Custom analytics event declared + tracked {#10}
 
-**Problema**: quiero saber cuántas veces el jugador aplica el
-preset "Hardcore".
+**Problem**: I want to know how many times the player applies the
+"Hardcore" preset.
 
-**Receta**:
+**Recipe**:
 
 ```json
 // mod.json
@@ -405,7 +410,7 @@ preset "Hardcore".
   "events": [
     {
       "name": "mymod_preset_applied",
-      "description": "Jugador aplicó un preset",
+      "description": "Player applied a preset",
       "schema": { "preset": "string" }
     }
   ]
@@ -417,35 +422,34 @@ host.subscribeEvent('MYMOD_APPLY_PRESET', async (payload) => {
   const name = (payload as { preset?: string })?.preset;
   if (!name) return;
 
-  // … aplicar el preset …
+  // … apply the preset …
 
   host.analytics?.track('mymod_preset_applied', { preset: name });
 });
 ```
 
-**Reglas**:
-- Eventos custom deben **declararse** en `analytics.events` del
-  manifest. El framework rechaza `track()` con un name no
-  declarado.
-- El `schema` declara qué campos van en cada evento. Sirve de
-  documentación + permite al framework filtrar PII por convención
-  (campos como `email`, `userId` requieren rationale).
-- El jugador puede opt-out de analytics en Settings → Privacy. Tu
-  `track()` se convierte en no-op silencioso. NO se rompe nada.
+**Rules**:
+- Custom events must be **declared** in `analytics.events` of
+  the manifest. The framework rejects `track()` with an
+  undeclared name.
+- The `schema` declares what fields go in each event. Serves as
+  documentation + lets the framework filter PII by convention
+  (fields like `email`, `userId` require rationale).
+- The player can opt-out of analytics in Settings → Privacy.
+  Your `track()` becomes a silent no-op. NOTHING breaks.
 
 ---
 
-## Más recetas
+## More recipes
 
-Si echas en falta una receta, abre issue en el
-[repo del template](https://github.com/leteoworks/mod-template-snake-classic/issues)
-con el problema concreto. La intención es que este cookbook crezca
-con casos reales de la comunidad.
+If you're missing a recipe, open an issue at the
+[template repo](https://github.com/leteoworks/mod-template-snake-classic/issues)
+with the specific problem. The intent is for this cookbook to
+grow with real community cases.
 
-## Ver también
+## See also
 
-- [`tutorial/`](tutorial/01-hello-mod.md) — curso paso a paso desde
-  hello world.
-- [`api-reference.md`](api-reference.md) — catálogo completo de
-  `host.*`.
-- [`troubleshooting.md`](troubleshooting.md) — síntomas → fixes.
+- [`tutorial/`](tutorial/01-hello-mod.md) — step-by-step course
+  from hello world.
+- [`api-reference.md`](api-reference.md) — full `host.*` catalog.
+- [`troubleshooting.md`](troubleshooting.md) — symptoms → fixes.

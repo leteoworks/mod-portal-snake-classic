@@ -5,34 +5,34 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Publicar tu mod
+# Publishing your mod
 
-Cómo publicar un mod ya completo a Steam Workshop, mantener releases y
-optar a niveles de verificación.
-
----
-
-## Antes de publicar — checklist
-
-- [ ] Probado en sideload local con la versión actual del juego.
-- [ ] Probado al menos con 1 mod más activo simultáneamente (para
-      detectar interacciones).
-- [ ] Probado tras restart del juego (state persistido correctamente).
-- [ ] Probado con/sin DLCs declarados en `requires.dlcs`.
-- [ ] `mod.json` válido (`pnpm exec mod-validator` o similar
-      proporcionado por el SDK del estudio si existe).
-- [ ] Iconos / screenshots preparados (PNG, <500KB cada uno).
-- [ ] `metadata.description` clara, sin typos.
-- [ ] Changelog escrito (si es update de versión anterior).
-- [ ] License declarada (MIT, GPL, custom...).
+How to publish a finished mod to Steam Workshop, maintain
+releases, and qualify for verification tiers.
 
 ---
 
-## Steam Workshop — proceso
+## Before publishing — checklist
 
-### 1. Empaquetar
+- [ ] Tested in local sideload with the current game version.
+- [ ] Tested with at least 1 other mod active simultaneously (to
+      catch interactions).
+- [ ] Tested after game restart (state persisted correctly).
+- [ ] Tested with/without DLCs declared in `requires.dlcs`.
+- [ ] Valid `mod.json` (`pnpm exec mod-validator` or similar
+      provided by the studio's SDK if it exists).
+- [ ] Icons / screenshots prepared (PNG, <500KB each).
+- [ ] `metadata.description` clear, no typos.
+- [ ] Changelog written (if update of previous version).
+- [ ] License declared (MIT, GPL, custom...).
 
-Crea un `.zip` con la estructura:
+---
+
+## Steam Workshop — process
+
+### 1. Package
+
+Create a `.zip` with the structure:
 
 ```
 my-mod.zip
@@ -45,133 +45,136 @@ my-mod.zip
 └── locales/
 ```
 
-Tamaño máximo recomendado: 5 MB. Workshop acepta más pero el download
-lento penaliza.
+Recommended max size: 5 MB. Workshop accepts more but slow
+downloads penalize you.
 
 ### 2. Steam Workshop client
 
-Desde Steam, abre el juego (Snake Classic o equivalente) → menú →
-Workshop → "Create New Item". Sube el `.zip`.
+From Steam, open the game (Snake Classic or equivalent) → menu →
+Workshop → "Create New Item". Upload the `.zip`.
 
-Campos:
-- **Title**: `metadata.name` por defecto.
-- **Description**: pega un README con secciones (qué hace, capturas,
-  changelog).
+Fields:
+- **Title**: `metadata.name` by default.
+- **Description**: paste a README with sections (what it does,
+  screenshots, changelog).
 - **Visibility**: public / friends only / unlisted.
-- **Tags**: usa los del catálogo del juego (el estudio define).
+- **Tags**: use the ones from the game's catalog (the studio
+  defines them).
 
 ### 3. Submit
 
-Tras subida exitosa, el Workshop ID es generado. **Guárdalo** —
-luego te servirá para updates.
+After successful upload, the Workshop ID is generated. **Save
+it** — you'll need it later for updates.
 
-### 4. Verificación (opcional)
+### 4. Verification (optional)
 
-El estudio puede ofrecer un flow de "verificación" de modders:
-- Aplica via formulario.
-- Pasas test de detección de malware en tu mod.
-- Aceptas TOS específicos.
-- Recibes una clave de firma o flag que sube tu trust tier a
+The studio may offer a "modder verification" flow:
+- Apply via form.
+- Pass malware detection test on your mod.
+- Accept specific TOS.
+- Receive a signing key or flag that raises your trust tier to
   `workshopVerified`.
 
-Mods verificados:
-- Sin prompt al jugador en su activación.
-- Permisos estándar otorgados sin extra confirmación.
-- Banner "Verified" visible en Workshop y en settings del juego.
+Verified mods:
+- No prompt to the player on activation.
+- Standard permissions granted without extra confirmation.
+- "Verified" banner visible in Workshop and in the game's
+  settings.
 
 ---
 
 ## Updates
 
-Para publicar una versión nueva:
+To publish a new version:
 
-1. Bumpea `version` en `mod.json` (PATCH / MINOR / MAJOR según
-   cambios).
-2. Empaqueta el nuevo `.zip`.
-3. En Steam Workshop, abre tu item existente → "Update Item" → sube el
-   nuevo zip.
-4. Añade entrada al changelog.
+1. Bump `version` in `mod.json` (PATCH / MINOR / MAJOR according
+   to changes).
+2. Package the new `.zip`.
+3. In Steam Workshop, open your existing item → "Update Item" →
+   upload the new zip.
+4. Add a changelog entry.
 
-Update automático para jugadores:
-- Si publicaron `1.0.0`, instalan `1.1.0` (MINOR): sus settings se
-  mantienen.
-- Si publican `2.0.0` (MAJOR): el cliente del jugador **resetea
-  settings** del mod automáticamente al actualizar (avísalo en el
+Automatic update for players:
+- If they had `1.0.0` and you publish `1.1.0` (MINOR): their
+  settings are preserved.
+- If you publish `2.0.0` (MAJOR): the player's client **resets**
+  the mod's settings automatically on update (announce it in the
   changelog).
 
 ---
 
 ## Sideload distribution
 
-Si tu mod no va a Steam Workshop (private mod, beta cerrada,
-playtest):
+If your mod isn't going to Steam Workshop (private mod, closed
+beta, playtest):
 
-1. Distribuye el `.zip` por tus canales (GitHub releases, página web,
-   Discord, etc.).
-2. El jugador descomprime en `<userData>/<gameId>/mods/<modId>/`.
-3. Reinicia el juego.
+1. Distribute the `.zip` via your channels (GitHub releases, web
+   page, Discord, etc.).
+2. The player extracts to `<userData>/<gameId>/mods/<modId>/`.
+3. Restart the game.
 
-Sideload mods son `unsigned` salvo que firmes con clave pública
-declarada (avanzado — ver firma manual con `ed25519` en
+Sideload mods are `unsigned` unless you sign with a declared
+public key (advanced — see manual signing with `ed25519` in
 [../security/signing-and-trust.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/security/signing-and-trust.md)).
 
 ---
 
-## Versionado y compat
+## Versioning and compatibility
 
-Cuando el juego anuncia una nueva versión MAJOR:
-- Tu mod con `requires.hostApi: '^1.0.0'` queda `incompatible` con
-  juego v2.x.
-- Probablemente necesites reescribir partes que dependían de la host
-  API antigua. Consulta el `host-api-changelog`.
-- Publica `2.0.0` (MAJOR de tu mod) con `requires.hostApi: '^2.0.0'`.
+When the game announces a new MAJOR version:
+- Your mod with `requires.hostApi: '^1.0.0'` is marked
+  `incompatible` with game v2.x.
+- You'll probably need to rewrite parts that depended on the old
+  host API. Check the `host-api-changelog`.
+- Publish `2.0.0` (MAJOR of your mod) with `requires.hostApi:
+  '^2.0.0'`.
 
-Los jugadores con la versión vieja del juego pueden seguir usando
-tu mod v1.x; los que actualizaron a v2.x descargan tu v2.0.0.
+Players with the old game version can keep using your mod v1.x;
+those who upgraded to v2.x download your v2.0.0.
 
-Workshop maneja la entrega de versiones compatibles automáticamente si
-declaraste los rangos correctamente.
-
----
-
-## Si tu mod entra en quarantine
-
-El framework marca mods que fallan repetidamente como `quarantined`.
-Los jugadores ven un mensaje "Este mod falló — autor podría haber
-publicado una corrección". Tu trabajo:
-
-1. Reproduce el fault local con la última versión del juego.
-2. Arregla.
-3. Publica una versión nueva (PATCH bump).
-4. Comunica en la página del Workshop: "v1.2.4 arregla el crash de
-   v1.2.3".
-
-Los jugadores des-quarantine-an manualmente desde settings tras
-actualizar. El framework no auto-des-quarantine.
+Workshop handles delivery of compatible versions automatically
+if you declared the ranges correctly.
 
 ---
 
-## Si recibes reportes de seguridad
+## If your mod enters quarantine
 
-Si alguien reporta que tu mod podría tener un problema de seguridad
-(filtrar datos, hacer requests no declarados, etc.):
+The framework marks mods that fail repeatedly as `quarantined`.
+Players see a "This mod failed — the author may have published a
+fix" message. Your job:
 
-1. **Toma en serio** incluso si parece menor.
-2. Audita tu código.
-3. Publica un fix.
-4. Comunica con transparencia en tu changelog.
+1. Reproduce the fault locally with the latest game version.
+2. Fix.
+3. Publish a new version (PATCH bump).
+4. Communicate on the Workshop page: "v1.2.4 fixes the v1.2.3
+   crash".
 
-Si los reportes son válidos y graves, el estudio puede kill-switch tu
-mod remotamente (apagado en clientes sin update). Eso suele significar
-final de la relación con la plataforma.
+Players un-quarantine manually from settings after updating. The
+framework does not auto-un-quarantine.
 
 ---
 
-## Resumen
+## If you receive security reports
 
-- Checklist exhaustivo antes de cada release.
-- Workshop process directo desde Steam client.
-- Verification flow opcional, sube tu trust tier.
-- SemVer estricto en updates.
-- Quarantine recoverable con fix.
-- Seguridad in incumplir → kill-switch terminal.
+If someone reports that your mod might have a security issue
+(leaking data, making undeclared requests, etc.):
+
+1. **Take it seriously** even if it seems minor.
+2. Audit your code.
+3. Publish a fix.
+4. Communicate transparently in your changelog.
+
+If the reports are valid and serious, the studio can kill-switch
+your mod remotely (shut down on clients without update). That
+usually means the end of the relationship with the platform.
+
+---
+
+## Summary
+
+- Exhaustive checklist before each release.
+- Workshop process direct from the Steam client.
+- Optional verification flow raises your trust tier.
+- Strict SemVer on updates.
+- Quarantine recoverable with a fix.
+- Security non-compliance → terminal kill-switch.

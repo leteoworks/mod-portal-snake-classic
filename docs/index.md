@@ -1,19 +1,26 @@
+<!--
+  ⚠ ARCHIVO AUTOGENERADO.
+  Editar la fuente en docs/mods/mod-development/ del monorepo y
+  ejecutar `pnpm mods:sync-portal-docs`. NO editar manualmente aquí
+  — los cambios se sobrescriben en la siguiente sincronización.
+-->
+
 ---
 layout: home
 
 hero:
-  name: Mods para Snake Classic
-  text: Doc oficial para autores de mods.
+  name: Snake Classic Mods
+  text: Official docs for mod authors.
   tagline: |
-    Personaliza power-ups, velocidad, progresión y UI sin compilar el
-    juego. Sandbox por diseño, compatible con cualquier bundle del
-    estudio (standalone + Classics Reloaded).
+    Customize power-ups, speed, progression, and UI without
+    compiling the game. Sandboxed by design, compatible with any
+    studio bundle (standalone + Classics Reloaded).
   actions:
     - theme: brand
-      text: Empezar
-      link: /getting-started
+      text: Get started
+      link: /tutorial/01-hello-mod
     - theme: alt
-      text: Mira el template
+      text: See the template
       link: https://github.com/leteoworks/mod-template-snake-classic
     - theme: alt
       text: Steam Workshop
@@ -21,67 +28,71 @@ hero:
 
 features:
   - icon: 📦
-    title: Manifest declarativo
+    title: Declarative manifest
     details: |
-      Un solo `mod.json` describe permisos, engine, eventos, settings UI,
-      assets, i18n. El framework valida con Zod antes de cargar.
+      A single `mod.json` describes permissions, engine, events,
+      settings UI, assets, i18n. The framework validates with Zod
+      before loading.
     link: /manifest-format
   - icon: 🎛️
-    title: UI con componentes oficiales
+    title: UI with official components
     details: |
-      No tienes que pelear con CSS. Declara tabs/sliders/toggles con
-      tokens semánticos y el juego renderiza con su look coherente.
+      You don't have to fight CSS. Declare tabs/sliders/toggles
+      with semantic tokens and the game renders them with its
+      coherent look.
     link: /storybook/index.html
   - icon: 🔐
-    title: Sandbox por diseño
+    title: Sandboxed by design
     details: |
-      Sin `fetch`, sin `window`, sin `require`. El host expone una API
-      controlada y el juego garantiza que un mod no puede tirarlo.
+      No `fetch`, no `window`, no `require`. The host exposes a
+      controlled API and the game guarantees that a mod cannot
+      crash it.
     link: /api-reference
   - icon: 🚀
-    title: Workshop nativo
+    title: Native Workshop
     details: |
-      Publica desde Steam → un `.zip` con tu manifest + dist y listo.
-      Auto-update, auto-discovery, kill-switch reactivo del estudio.
+      Publish from Steam → a `.zip` with your manifest + dist and
+      you're done. Auto-update, auto-discovery, reactive
+      kill-switch from the studio.
     link: /publishing
   - icon: 🧩
     title: Multi-engine
     details: |
-      Elige el motor según tus necesidades. QuickJS por defecto;
-      isolated-vm, iframe-sandbox, web-worker-offscreen-canvas u otros
-      según features.
+      Choose the engine based on your needs. QuickJS by default;
+      isolated-vm, iframe-sandbox, web-worker-offscreen-canvas, or
+      others depending on features.
     link: /multi-engine
   - icon: 🎯
-    title: Targeting al `gameId`
+    title: Targeting by `gameId`
     details: |
-      Tu mod apunta a `snake-classic` y funciona en cualquier bundle
-      que monte el juego (standalone, Classics Reloaded…). Sin
-      duplicar publicaciones.
+      Your mod targets `snake-classic` and works in any bundle
+      that mounts the game (standalone, Classics Reloaded…).
+      Without duplicating publications.
     link: /targeting-games
 ---
 
-## ¿Qué encontrarás aquí?
+## What you'll find here
 
-- **Tutoriales** paso a paso para tu primer mod.
-- **Referencia completa** del `mod.json` y del `HostBridge`.
-- **Catálogo visual** de componentes UI declarativos disponibles.
-- **Guía de publicación** a Steam Workshop (incluyendo flow de
-  verificación opcional cuando se active).
-- **Ejemplos reales** clonables — empezando por el mod oficial
-  "Fun Config" que sirve de referencia viva.
+- **Step-by-step tutorials** for your first mod.
+- **Full reference** for `mod.json` and the `HostBridge`.
+- **Visual catalog** of available declarative UI components.
+- **Publishing guide** to Steam Workshop (including the optional
+  verification flow when active).
+- **Real, clonable examples** — starting with the official
+  "Fun Config" mod that serves as a living reference.
 
-## ¿Quién mantiene esto?
+## Who maintains this?
 
-El portal lo mantiene el equipo de Leteo Works. Issues, sugerencias y
-PRs vienen por GitHub. Bugs del juego o del runtime van por el repo
-principal; bugs de docs vienen aquí.
+The portal is maintained by Leteo Works. Issues, suggestions, and
+PRs come via GitHub. Bugs of the game or runtime go to the main
+repo; bugs of the docs come here.
 
-## Conducta esperada de la comunidad
+## Expected community conduct
 
-Mods que ejecuten malware, doxxen jugadores, o filtren datos serán
-**reportados a Steam y kill-switch-eados** desde nuestro panel de
-operación. El sandbox del runtime ya impide la mayoría de vectores,
-pero la responsabilidad final es del modder.
+Mods that run malware, dox players, or leak data will be
+**reported to Steam and kill-switched** from our operations
+panel. The runtime sandbox already prevents most vectors, but
+the ultimate responsibility is the modder's.
 
-Para todo lo demás: enjoy + experimenta sin miedo. Hacer mods debe ser
-divertido.
+For everything else: enjoy + experiment without fear. Making
+mods should be fun.

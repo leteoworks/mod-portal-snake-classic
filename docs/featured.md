@@ -1,72 +1,80 @@
-# Mods destacados
+<!--
+  ⚠ ARCHIVO AUTOGENERADO.
+  Editar la fuente en docs/mods/mod-development/ del monorepo y
+  ejecutar `pnpm mods:sync-portal-docs`. NO editar manualmente aquí
+  — los cambios se sobrescriben en la siguiente sincronización.
+-->
 
-Selección curada por el estudio. Sin algoritmos: una persona del
-equipo elige y la lista vive en
+# Featured mods
+
+Selection curated by the studio. No algorithms: a team member
+picks, and the list lives in
 [`featured.json`](https://github.com/leteoworks/mod-portal-snake-classic/blob/main/featured.json)
-del repo del portal. Las elecciones se documentan en
+in the portal repo. Choices are documented in
 [`operations/featured-mods-curation.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/operations/featured-mods-curation.md)
-del repo del framework.
+in the framework repo.
 
-> **No es un sistema de partnership ni pago**. Aparecer aquí no
-> implica acuerdo comercial — es reconocimiento gratuito al trabajo
-> del modder. Si el verification tier (`workshopVerified`) se activa
-> en el futuro, los mods featured podrán pasar al tier verified con
-> proceso aparte.
-
----
-
-## Mod del mes
-
-<!-- Auto-rellenado por el build del portal desde featured.json#modOfTheMonth.
-     Mientras no haya nadie destacado (default null), esta sección
-     muestra el placeholder. -->
-
-_Sin nominado para este mes. ¿Conoces un mod que merezca destacarse?
-Ábrelo en [Workshop Discussions](https://steamcommunity.com/app/TBD/workshop/)
-con el tag "Featured nomination"._
+> **This is not a partnership or paid system**. Appearing here
+> doesn't imply a commercial agreement — it's free recognition
+> for the modder's work. If the verification tier
+> (`workshopVerified`) is activated in the future, featured mods
+> may pass to the verified tier with a separate process.
 
 ---
 
-## Selección actual
+## Mod of the month
 
-<!-- Auto-rellenado por el build del portal desde featured.json#featured.
-     Iterar manualmente debajo en este markdown NO es necesario —
-     el script de build del portal lo regenera. Mantener este
-     archivo como "fuente humana" + JSON como "fuente machine-readable"
-     es el patrón canónico. -->
+<!-- Auto-filled by the portal build from featured.json#modOfTheMonth.
+     While no one is featured (default null), this section shows
+     the placeholder. -->
+
+_No nominee for this month. Know a mod that deserves the
+spotlight? Open it on
+[Workshop Discussions](https://steamcommunity.com/app/TBD/workshop/)
+with the "Featured nomination" tag._
+
+---
+
+## Current selection
+
+<!-- Auto-filled by the portal build from featured.json#featured.
+     Iterating manually below in this markdown is NOT necessary —
+     the portal's build script regenerates it. Keeping this file
+     as "human source" + JSON as "machine-readable source" is the
+     canonical pattern. -->
 
 ### Fun Config — by Studio Leteo
 
 `studio.fun-config` · _First Party · Customization_
 
-Mod oficial first-party. Personaliza power-ups, velocidad y
-progresión con presets divertidos. Sirve de referencia viva para
-modders que estén empezando — su código está en
-[`src/games/snake-classic/mods/bundled/studio.fun-config/`](https://github.com/leteoworks/my-game-fw/tree/main/src/games/snake-classic/mods/bundled/studio.fun-config)
-del repo del framework, abierto y clonable.
+Official first-party mod. Customize power-ups, speed, and
+progression with fun presets. Serves as a living reference for
+modders just starting — its code lives in
+[`game-mods/snake-classic/studio.fun-config/`](https://github.com/leteoworks/my-game-fw-mods/tree/main/snake-classic/studio.fun-config)
+of the first-party mods subrepo, open and clonable.
 
 ---
 
-## ¿Cómo nominar un mod?
+## How to nominate a mod?
 
-1. El mod tiene que estar publicado en Steam Workshop con
-   visibility Public.
-2. Abre un thread en Workshop Discussions del juego con título
+1. The mod must be published on Steam Workshop with visibility
+   Public.
+2. Open a thread on the game's Workshop Discussions with title
    `Featured nomination: <modId>`.
-3. Incluye 2-3 frases de por qué el mod merece destacarse.
-4. El estudio revisa periódicamente las nominaciones (no es
-   instantáneo — esperamos que pasen días/semanas).
-5. Si entra, aparece aquí + en la home del portal. El modder
-   recibe ping en Workshop Discussions.
+3. Include 2-3 sentences on why the mod deserves the spotlight.
+4. The studio reviews nominations periodically (not instant —
+   expect days/weeks).
+5. If it makes it in, it appears here + on the portal home. The
+   modder gets a ping on Workshop Discussions.
 
-## ¿Cómo se quita?
+## How does it get removed?
 
-Auto: la curación es **reset cada 6 meses** para evitar que los
-mods featured se queden indefinidamente. Mods muy duraderos (e.g.
-Fun Config) re-aparecen tras revisión.
+Auto: curation **resets every 6 months** to avoid featured mods
+staying indefinitely. Very long-lived mods (e.g. Fun Config)
+re-appear after review.
 
-Reactivo: si el estudio detecta que un mod featured se ha vuelto
-problemático (bugs persistentes, autor abandonó, comportamiento
-malicioso descubierto), sale inmediatamente del featured. Caso
-extremo → kill-switch operacional (ver
+Reactive: if the studio detects that a featured mod has become
+problematic (persistent bugs, author abandoned, malicious
+behavior discovered), it leaves featured immediately. Extreme
+case → operational kill-switch (see
 [`kill-switch-runbook.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/operations/kill-switch-runbook.md)).

@@ -5,60 +5,61 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Lección 2 — Slider que cambia un valor del juego en tiempo real
+# Lesson 2 — Slider that tunes the game in real time
 
-Objetivo: añadir un slider al tab de tu mod que controle la
-**velocidad inicial de Snake** (parámetro `initialSpeedTickMs`).
-El cambio se aplica al inicio de cada partida.
+Goal: add a slider to your mod's tab that controls **Snake's
+initial speed** (parameter `initialSpeedTickMs`). The change
+applies at the start of each game.
 
-> Código de referencia real: [`studio.gameplay-tuner`](https://github.com/leteoworks/mod-template-snake-classic)
-> hace exactamente esto con 3 sliders (vidas, velocidad, puntos
-> por comida). Puedes mirarlo en cualquier momento.
+> Real reference code: [`studio.gameplay-tuner`](https://github.com/leteoworks/mod-template-snake-classic)
+> does exactly this with 3 sliders (lives, speed, points per food).
+> You can read it at any point.
 
 ---
 
-## Concepto nuevo: tunables
+## New concept: tunables
 
-Un **tunable** es un valor del juego que está expuesto al sistema
-de mods para que lo puedan leer y modificar. Snake Classic expone
-~30 tunables hoy (vidas, velocidad, puntos, spawn rates,
-intervalos…). El juego decide cuáles expone — desde tu mod los
-consumes vía `host.callHostFn`.
+A **tunable** is a game value exposed to the mod system so mods
+can read and modify it. Snake Classic exposes ~30 tunables today
+(lives, speed, points, spawn rates, intervals…). The game decides
+which ones it exposes — from your mod you consume them via
+`host.callHostFn`.
 
-**Host functions canónicas para tunables**:
+**Canonical host functions for tunables**:
 
-| Función | Qué hace |
+| Function | What it does |
 |---|---|
-| `gameConfigSet({ name, value })` | Aplica un override al tunable `name`. |
-| `gameConfigReset({ name })` | Quita el override; vuelve al default del juego. |
-| `gameConfigSnapshot()` | Lee todos los tunables activos + sus valores actuales. |
+| `gameConfigSet({ name, value })` | Applies an override to the tunable `name`. |
+| `gameConfigReset({ name })` | Removes the override; restores the game default. |
+| `gameConfigSnapshot()` | Reads all active tunables + their current values. |
 
-Cada tunable tiene `min`, `max`, `step`, `default` y tipo (`number`,
-`boolean`, `string`). Los descubres mirando el descriptor que el
-juego registra — o, en práctica, mirando `tunables.ts` del juego en
-el monorepo.
+Each tunable has `min`, `max`, `step`, `default`, and a type
+(`number`, `boolean`, `string`). You discover them by looking at
+the descriptor the game registers — or, in practice, by reading
+the game's `tunables.ts` in the monorepo.
 
 ---
 
-## 1 — Declarar permiso `game-specific`
+## 1 — Declare `game-specific` permission
 
-En `mod.json`, añade al array de permisos:
+In `mod.json`, add to the permissions array:
 
 ```json
 {
   "type": "game-specific",
   "surface": "tunables",
   "actions": ["set", "reset", "snapshot"],
-  "rationale": "Modifica la velocidad inicial de Snake elegida por el jugador."
+  "rationale": "Modifies the initial speed of Snake chosen by the player."
 }
 ```
 
-Sin este permiso, `host.callHostFn('gameConfigSet', ...)` rechaza con
-`permission-denied`. El jugador lo verá en el prompt de activación.
+Without this permission, `host.callHostFn('gameConfigSet', ...)`
+rejects with `permission-denied`. The player will see it in the
+activation prompt.
 
 ---
 
-## 2 — Añadir el slider al tab
+## 2 — Add the slider to the tab
 
 `src/index.ts`:
 
@@ -70,11 +71,11 @@ host.registerSettingsTab?.({
   sections: [
     {
       kind: 'card',
-      title: 'Velocidad',
+      title: 'Speed',
       children: [
         {
           kind: 'slider',
-          label: 'Velocidad inicial (ms/tick)',
+          label: 'Initial speed (ms/tick)',
           min: 80,
           max: 500,
           step: 10,
@@ -84,11 +85,11 @@ host.registerSettingsTab?.({
     },
     {
       kind: 'card',
-      title: 'Saludo',
+      title: 'Greeting',
       children: [
         {
           kind: 'toggle',
-          label: 'Saludar al terminar la partida',
+          label: 'Greet at game over',
           binding: 'greetOnGameOver',
         },
       ],
@@ -97,28 +98,27 @@ host.registerSettingsTab?.({
 });
 ```
 
-**Detalle clave del `binding`**:
-- `binding: 'tunables.initialSpeedTickMs'` (con prefijo `tunables.`)
-  → el runtime aplica el cambio **automáticamente** vía
-  `gameConfigSet` cada vez que el jugador mueve el slider. NO
-  necesitas escribir handler.
-- `binding: 'greetOnGameOver'` (sin prefijo) → solo escribe al
-  `host.storage` del mod. NO toca el juego.
+**Key detail about the `binding`**:
+- `binding: 'tunables.initialSpeedTickMs'` (with `tunables.` prefix)
+  → the runtime applies the change **automatically** via
+  `gameConfigSet` every time the player moves the slider. You DON'T
+  write a handler.
+- `binding: 'greetOnGameOver'` (no prefix) → only writes to the
+  mod's `host.storage`. Does NOT touch the game.
 
-Es decir, el `tunables.` prefix es el "vínculo mágico" entre la UI
-de tu mod y los valores del juego. Cualquier otro nombre = storage
-del mod.
+In other words, the `tunables.` prefix is the "magic link" between
+your mod's UI and the game's values. Any other name = mod storage.
 
 ---
 
-## 3 — Aplicar config al inicio de cada partida
+## 3 — Apply config at the start of each game
 
-El slider aplica el cambio "en vivo" mientras el jugador lo mueve
-en Settings. Pero, ¿qué pasa si el jugador cierra el juego y vuelve
-a abrirlo? El valor está persistido en storage, pero el juego
-arranca con sus defaults hasta que pase por el slider de nuevo.
+The slider applies "live" while the player moves it in Settings.
+But what if the player closes the game and reopens it? The value
+is persisted in storage, but the game starts with its defaults
+until the player goes through the slider again.
 
-Para evitar eso: re-aplica al inicio de cada partida.
+To avoid that: re-apply at the start of each game.
 
 ```ts
 host.subscribeEvent('GAME_STARTED', async () => {
@@ -129,39 +129,40 @@ host.subscribeEvent('GAME_STARTED', async () => {
       value: result.value,
     });
     host.log.debug(
-      `[hello-mod] Velocidad inicial aplicada: ${result.value}ms`,
+      `[hello-mod] Initial speed applied: ${result.value}ms`,
     );
   }
 });
 ```
 
-Añade `"GAME_STARTED"` al `subscribe` del permiso `events` en
-`mod.json`.
+Add `"GAME_STARTED"` to the `subscribe` list in the `events`
+permission of `mod.json`.
 
 ---
 
-## 4 — Anti-patrón: last-write-wins
+## 4 — Anti-pattern: last-write-wins
 
-Hay una trampa sutil:
-- La UI tiene un `binding: 'tunables.initialSpeedTickMs'`. Si lo
-  mueves, el runtime escribe a storage Y al juego.
-- Tu hook `GAME_STARTED` lee del storage y escribe al juego.
+There's a subtle trap:
+- The UI has a `binding: 'tunables.initialSpeedTickMs'`. If you
+  move it, the runtime writes to storage AND to the game.
+- Your `GAME_STARTED` hook reads from storage and writes to the
+  game.
 
-Si el orden es UI-write → hook-read → hook-write, el hook escribe
-el mismo valor, no pasa nada. Pero si dos handlers escriben con
-distinta lógica, el último gana.
+If the order is UI-write → hook-read → hook-write, the hook
+writes the same value, no problem. But if two handlers write with
+different logic, the last one wins.
 
-**Regla**: NO mezcles binding directo + hook que escriba la misma
-key. Decide uno:
-- **Solo binding**: para valores que el jugador edita y se aplican en
-  vivo. El juego ya no recibe el cambio al arrancar si reinicia.
-- **Solo hook**: para valores derivados o presets que requieren
-  cálculo previo.
+**Rule**: DON'T mix direct binding + a hook that writes the same
+key. Pick one:
+- **Only binding**: for values the player edits and apply live. The
+  game no longer receives the change at start if it restarts.
+- **Only hook**: for derived values or presets that need pre-
+  computation.
 
-En este tutorial usamos las dos cosas porque son lecturas
-secuenciales sobre la misma key — no compiten. Si añades un botón
-"Reset to defaults" que reescribe la key, también va a aplicarse vía
-el binding del slider. Coherente.
+In this tutorial we use both because they're sequential reads on
+the same key — they don't compete. If you add a "Reset to
+defaults" button that rewrites the key, it'll also apply via the
+slider's binding. Coherent.
 
 ---
 
@@ -169,86 +170,85 @@ el binding del slider. Coherente.
 
 ```bash
 pnpm build
-# Copiar a sideload (ver Lección 1, paso 5)
+# Copy to sideload (see Lesson 1, step 5)
 ```
 
-En el juego:
-1. Recarga (los mods se cargan al boot).
-2. Tab "Hello Mod" ahora muestra el slider de velocidad.
-3. Muévelo → observa el log `[hello-mod] Velocidad inicial aplicada`.
-4. Empieza una partida. La velocidad inicial coincide con tu
-   slider.
+In the game:
+1. Reload (mods are loaded at boot).
+2. The "Hello Mod" tab now shows the speed slider.
+3. Move it → watch the log `[hello-mod] Initial speed applied`.
+4. Start a game. The initial speed matches your slider.
 
 ---
 
-## 6 — Reset a defaults
+## 6 — Reset to defaults
 
-Añade un botón al tab:
+Add a button to the tab:
 
 ```ts
 {
   kind: 'card',
-  title: 'Acciones',
+  title: 'Actions',
   children: [{
     kind: 'button',
-    label: 'Restaurar velocidad por defecto',
+    label: 'Restore default speed',
     variant: 'ghost',
     action: { kind: 'event', name: 'HELLO_RESET_SPEED' },
   }],
 }
 ```
 
-Y el handler:
+And the handler:
 
 ```ts
 host.subscribeEvent('HELLO_RESET_SPEED', async () => {
   await host.callHostFn('gameConfigReset', {
     name: 'initialSpeedTickMs',
   });
-  // Limpiar también el storage para que el slider muestre el
-  // default del juego en el próximo render.
+  // Clear storage too so the slider shows the game's default
+  // next time it renders.
   await host.storage?.remove('tunables.initialSpeedTickMs');
 });
 ```
 
-Añade `"HELLO_RESET_SPEED"` al `subscribe` del permiso `events`.
+Add `"HELLO_RESET_SPEED"` to the `subscribe` list of `events`.
 
 ---
 
-## Lo que has aprendido
+## What you've learned
 
-- **Tunables**: valores del juego expuestos al mod via host
-  functions (`gameConfigSet`/`gameConfigReset`/`gameConfigSnapshot`).
-- **Binding con prefijo `tunables.`**: aplica al juego en vivo.
-- **Binding sin prefijo**: solo storage del mod.
-- **Hook `GAME_STARTED`** para re-aplicar al inicio de cada
-  partida (resistente a reinicio del juego).
-- **Anti-patrón** last-write-wins entre UI binding + hook.
+- **Tunables**: game values exposed to the mod via host functions
+  (`gameConfigSet`/`gameConfigReset`/`gameConfigSnapshot`).
+- **Binding with `tunables.` prefix**: applies to the game live.
+- **Binding without prefix**: only mod storage.
+- **`GAME_STARTED` hook** to re-apply at the start of each game
+  (resilient to game restart).
+- **Anti-pattern** last-write-wins between UI binding + hook.
 
-## Lo que viene
+## What's next
 
-[**Lección 3 — Reaccionar a lo que pasa en partida**](03-game-events.md).
-Vas a usar más eventos: `SCORE_CHANGED`, `POWER_UP_PICKED`, etc.
-Aprendes `host.state.read` para lectura puntual y
-`host.dispatch` para notificaciones in-game.
+[**Lesson 3 — React to what happens in-game**](03-game-events.md).
+You'll use more events: `SCORE_CHANGED`, `POWER_UP_PICKED`, etc.
+You'll learn `host.state.read` for point queries and
+`host.dispatch` for in-game notifications.
 
 ---
 
-## Apéndice — tunables disponibles en Snake Classic
+## Appendix — tunables available in Snake Classic
 
-Lista parcial (ver [`tunables.ts`](https://github.com/leteoworks/my-game-fw/blob/main/src/games/snake-classic/mods/tunables.ts)
-del juego para el catálogo completo):
+Partial list (see [`tunables.ts`](https://github.com/leteoworks/my-game-fw/blob/main/src/games/snake-classic/mods/tunables.ts)
+of the game for the full catalog):
 
-| Tunable | Tipo | Rango | Descripción |
+| Tunable | Type | Range | Description |
 |---|---|---|---|
-| `maxLives` | number | 1-50 | Vidas máximas |
-| `initialSpeedTickMs` | number | 80-500 | ms entre ticks al inicio |
-| `pointsPerFood` | number | 1-100 | Puntos por comida normal |
-| `powerupIntervalMs` | number | 1000-30000 | Intervalo entre power-ups |
-| `powerup<Name>Enabled` | boolean | - | Activar/desactivar el power-up |
+| `maxLives` | number | 1-50 | Max lives |
+| `initialSpeedTickMs` | number | 80-500 | ms between ticks at start |
+| `pointsPerFood` | number | 1-100 | Points per normal food |
+| `powerupIntervalMs` | number | 1000-30000 | Interval between power-ups |
+| `powerup<Name>Enabled` | boolean | - | Enable/disable the power-up |
 
-(El catálogo es ~30 tunables. Power-ups son 22 toggles.)
+(The full catalog is ~30 tunables. Power-ups are 22 toggles.)
 
-> Si necesitas un tunable que el juego AÚN no expone, abre issue en
-> el repo del juego o un PR añadiendo el `defineTunable(...)` en
+> If you need a tunable the game hasn't exposed yet, open an issue
+> on the game's repo or a PR adding the `defineTunable(...)` in
 > `tunables.ts`.

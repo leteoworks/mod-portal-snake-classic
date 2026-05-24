@@ -5,46 +5,46 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Troubleshooting — síntomas y diagnósticos
+# Troubleshooting — symptoms and diagnoses
 
-Tabla de problemas comunes al escribir o publicar mods, con causa
-probable y fix. Si tu problema no está aquí, abre issue en el
-[repo del template](https://github.com/leteoworks/mod-template-snake-classic/issues)
-con el síntoma exacto.
+Table of common problems when writing or publishing mods, with
+likely cause and fix. If your problem isn't here, open an issue
+at the [template repo](https://github.com/leteoworks/mod-template-snake-classic/issues)
+with the exact symptom.
 
 ---
 
-## Tabla rápida
+## Quick table
 
-| Síntoma | Causa probable | Fix |
+| Symptom | Likely cause | Fix |
 |---|---|---|
-| Mod no aparece en Settings → Mods | Sideload path mal, falta `mod.json`, `target.gameId` no coincide | Verifica path canónico por OS (abajo). Verifica `target.gameId` en `mod.json`. |
-| "Failed to activate" en el prompt de permisos | Un permiso requerido por el código NO está declarado en `mod.json` | Mira el log de consola. Añade el permiso al manifest. Restart del juego. |
-| Tab del mod aparece vacío | `kind` no reconocido por el motor, `binding` con typo, sección sin `children` | Valida descriptor contra [`multi-engine.md`](multi-engine.md) § "vocabulario embedded". |
-| Logs no aparecen en consola | Build dev sin DevTools abiertos, o `host.log.debug` filtrado | Build dev (Electron): View → Toggle Developer Tools. En retail: `Settings → Mods → <mod> → Logs`. |
-| "entry not found" al cargar | `entry` en manifest apunta a path que no existe | Verifica `dist/mod.js` tras `pnpm build`. |
-| "Permission denied" al `storage.set` | Permiso `storage` no declarado o `quotaKb` excedido | Añade `{ "type": "storage", "quotaKb": 32, ... }` al manifest. |
-| HMR no actualiza tras editar | Ejecutando solo `pnpm build`, no `pnpm dev:mod` | Usa `pnpm dev:mod <gameId> <modId>` (workflow first-party). |
-| Mod activo pero el juego no cambia | El `binding` no aplica al juego, falta hook | Si `binding: 'tunables.X'` → aplica. Si `binding: 'custom.X'` → solo storage, necesitas hook. |
-| App Store rechaza el bundle | Permiso `network` declarado o `dynamic-code` en build iOS | Usa `GAMEFW_MODS_BUNDLED_ONLY=1` en build. Ver [`manifest-format.md`](manifest-format.md) § iOS compliance. |
-| `pnpm mods:validate` falla con "unknown permission" | Permiso con `type` mal escrito | Tipos válidos: `events`, `settings-ui`, `storage`, `game-specific`, `i18n`, `state-read`, `state-write`, `network`, `dlc`. |
-| `gameConfigSet` rechaza con "not-found" | Tunable name typo o el juego no expone ese tunable | Lista de tunables disponibles en `tunables.ts` del juego. |
-| Mod funciona en dev pero no en retail | Firma faltante, build dev incluido en pack | `pnpm build:release` antes de `pnpm pack`. |
-| Worskhop upload sin botón "Submit" | Falta campo obligatorio (Title, Description, Tag) | Rellena todos los campos requeridos del formulario Steam. |
-| `degit` falla con 404 | Repo template no es público, o nombre mal escrito | Verifica `leteoworks/mod-template-snake-classic` accesible. |
-| `pnpm build` lento (>30s) | Bundling con deps externas no marcadas | `mod.json.entry` debe apuntar a IIFE bundleado sin externals. `external: []` en build.mjs. |
+| Mod doesn't appear in Settings → Mods | Wrong sideload path, missing `mod.json`, `target.gameId` mismatch | Verify canonical path by OS (below). Verify `target.gameId` in `mod.json`. |
+| "Failed to activate" in the permissions prompt | A permission required by code is NOT declared in `mod.json` | Look at the console log. Add the permission to the manifest. Restart the game. |
+| Mod tab appears empty | `kind` not recognized by the engine, typo in `binding`, section without `children` | Validate descriptor against [`multi-engine.md`](multi-engine.md) § "embedded vocabulary". |
+| Logs don't appear in console | Dev build without DevTools open, or `host.log.debug` filtered | Dev build (Electron): View → Toggle Developer Tools. In retail: `Settings → Mods → <mod> → Logs`. |
+| "entry not found" on load | `entry` in manifest points to a non-existent path | Verify `dist/mod.js` after `pnpm build`. |
+| "Permission denied" on `storage.set` | `storage` permission not declared or `quotaKb` exceeded | Add `{ "type": "storage", "quotaKb": 32, ... }` to the manifest. |
+| HMR doesn't update after edit | Running only `pnpm build`, not `pnpm dev:mod` | Use `pnpm dev:mod <gameId> <modId>` (first-party workflow). |
+| Mod active but game doesn't change | The `binding` doesn't apply to the game, missing hook | If `binding: 'tunables.X'` → applies. If `binding: 'custom.X'` → only storage, you need a hook. |
+| App Store rejects the bundle | `network` permission declared or `dynamic-code` in iOS build | Use `GAMEFW_MODS_BUNDLED_ONLY=1`. See [`manifest-format.md`](manifest-format.md) § iOS compliance. |
+| `pnpm mods:validate` fails with "unknown permission" | Permission `type` misspelled | Valid types: `events`, `settings-ui`, `storage`, `game-specific`, `i18n`, `state-read`, `state-write`, `network`, `dlc`. |
+| `gameConfigSet` rejects with "not-found" | Tunable name typo or game doesn't expose that tunable | List of available tunables in the game's `tunables.ts`. |
+| Mod works in dev but fails in retail | Missing signature, dev build included in pack | `pnpm build:release` before `pnpm pack`. |
+| Workshop upload without "Submit" button | Missing required field (Title, Description, Tag) | Fill in all required fields of the Steam form. |
+| `degit` fails with 404 | Template repo not public, or name misspelled | Verify `leteoworks/mod-template-snake-classic` is accessible. |
+| `pnpm build` slow (>30s) | Bundling with external deps not marked | `mod.json.entry` must point to an IIFE bundled with no externals. `external: []` in build.mjs. |
 
 ---
 
-## Sección 1 — Mod no aparece en Settings → Mods
+## Section 1 — Mod doesn't appear in Settings → Mods
 
-### Síntoma
-Has hecho sideload pero la lista de mods en `Settings → Mods` no
-muestra tu mod.
+### Symptom
+You sideloaded but the mod list in `Settings → Mods` doesn't show
+your mod.
 
-### Checks en orden
+### Checks in order
 
-1. **Path del userData correcto**. El juego busca en:
+1. **Correct userData path**. The game looks in:
 
    | OS | Path |
    |---|---|
@@ -52,58 +52,58 @@ muestra tu mod.
    | Windows | `%APPDATA%/snake-classic/mods/<modId>/` |
    | Linux | `~/.config/snake-classic/mods/<modId>/` |
 
-   El `<modId>` del directorio debe coincidir con el `id` del
-   `mod.json` (sino el loader lo ignora).
+   The directory `<modId>` must match the `id` in `mod.json`
+   (otherwise the loader ignores it).
 
-2. **`mod.json` válido**. Pasa el validator:
+2. **Valid `mod.json`**. Run the validator:
 
    ```bash
    pnpm mods:validate /path/to/sideload-dir
    ```
 
-3. **`target.gameId`**. Debe ser exactamente `'snake-classic'`.
-   Cualquier otra cosa (`'snake'`, `'snake_classic'`) y el loader
-   lo rechaza.
+3. **`target.gameId`**. Must be exactly `'snake-classic'`.
+   Anything else (`'snake'`, `'snake_classic'`) and the loader
+   rejects it.
 
-4. **`entry` existe**. Si tu `mod.json` dice `"entry":
-   "dist/mod.js"`, ese archivo DEBE existir relativo a la raíz
-   del mod. Verifica:
+4. **`entry` exists**. If your `mod.json` says `"entry":
+   "dist/mod.js"`, that file MUST exist relative to the mod root.
+   Verify:
 
    ```bash
    ls ~/Library/Application\ Support/snake-classic/mods/<modId>/dist/mod.js
    ```
 
-5. **Modo sideload activo en retail**. En build dev sideload
-   está activo por defecto. En build retail necesita el easter
-   egg "7 taps en versión del juego" (Settings → About → tap 7×).
-   En build dev del estudio: siempre activo.
+5. **Sideload mode active in retail**. In dev builds, sideload is
+   on by default. In retail it needs the "7 taps on version"
+   easter egg (Settings → About → tap 7×). In studio dev builds:
+   always active.
 
-6. **Log del loader**. Abre DevTools (build dev) y busca
-   `[mod-loader]`. Suele decir exactamente por qué rechazó tu
-   mod.
+6. **Loader log**. Open DevTools (dev build) and look for
+   `[mod-loader]`. It usually says exactly why your mod was
+   rejected.
 
 ---
 
-## Sección 2 — "Failed to activate"
+## Section 2 — "Failed to activate"
 
-### Síntoma
-Al hacer click "Activar" → el prompt de permisos aparece →
-aceptar → el mod queda en estado "Failed (permissions)".
+### Symptom
+You click "Activate" → permissions prompt appears → accept → mod
+ends up in "Failed (permissions)" state.
 
-### Causa
-Tu código pide algo (un permiso) que NO está declarado en el
-manifest. Ejemplos:
+### Cause
+Your code asks for something (a permission) NOT declared in the
+manifest. Examples:
 
-- Llamas `host.callHostFn('gameConfigSet', ...)` sin permiso
-  `game-specific` declarado.
-- Llamas `host.dispatch('MOD_NOTIFICATION', ...)` sin `events`
-  con `dispatch: ['MOD_NOTIFICATION']`.
-- Llamas `host.state.read('game.score')` sin `state-read.paths`
-  incluyendo `'game.score'`.
+- You call `host.callHostFn('gameConfigSet', ...)` without
+  `game-specific` permission declared.
+- You call `host.dispatch('MOD_NOTIFICATION', ...)` without
+  `events` having `dispatch: ['MOD_NOTIFICATION']`.
+- You call `host.state.read('game.score')` without `state-read.paths`
+  including `'game.score'`.
 
 ### Fix
 
-1. Abre DevTools, busca el primer `permission-denied` log:
+1. Open DevTools, find the first `permission-denied` log:
 
    ```
    [mod-runtime] permission-denied: <mod-id>
@@ -112,7 +112,7 @@ manifest. Ejemplos:
      reason: missing permission `game-specific.surface=tunables.actions=set`
    ```
 
-2. Añade el permiso al `mod.json`:
+2. Add the permission to `mod.json`:
 
    ```json
    {
@@ -123,76 +123,75 @@ manifest. Ejemplos:
    }
    ```
 
-3. Reload del juego (los permisos se vuelven a chequear al
-   activar).
+3. Reload the game (permissions are re-checked on activate).
 
 ---
 
-## Sección 3 — Tab del mod aparece vacío
+## Section 3 — Mod tab appears empty
 
-### Síntoma
-Tu tab aparece en Settings pero está vacío (sin sliders, sin
-toggles, sin nada).
+### Symptom
+Your tab appears in Settings but is empty (no sliders, no
+toggles, nothing).
 
-### Causas posibles
+### Possible causes
 
-1. **`kind` no reconocido**. El motor del runtime acepta:
+1. **Unrecognized `kind`**. The runtime engine accepts:
    `card`, `heading`, `paragraph`, `divider`, `slider`, `toggle`,
-   `select`, `button`, `input` (texto). Si tu descriptor usa otro
-   `kind` (e.g. `'switch'` o `'checkbox'`), el motor lo ignora
-   silenciosamente.
+   `select`, `button`, `input` (text). If your descriptor uses
+   another `kind` (e.g. `'switch'` or `'checkbox'`), the engine
+   silently ignores it.
 
-2. **Sección sin `children`**. Una `card` sin `children: [...]`
-   se renderiza vacía:
+2. **Section without `children`**. A `card` without
+   `children: [...]` renders empty:
 
    ```ts
-   // ❌ mal
+   // ❌ wrong
    { kind: 'card', title: 'X' }
 
-   // ✅ bien
+   // ✅ right
    { kind: 'card', title: 'X', children: [...] }
    ```
 
-3. **Errores en `host.i18n?.t(key)` que devuelven `undefined`**.
-   Si tu `label` es `undefined`, el componente puede ocultarse.
-   Usa fallback:
+3. **`host.i18n?.t(key)` errors returning `undefined`**. If your
+   `label` is `undefined`, the component may hide. Use a
+   fallback:
 
    ```ts
-   label: host.i18n?.t('key') ?? 'Fallback literal',
+   label: host.i18n?.t('key') ?? 'Literal fallback',
    ```
 
-### Diagnóstico
+### Diagnosis
 
-Abre DevTools → busca `[mod-ui]` warnings. Suele logear los
-descriptors no reconocidos.
+Open DevTools → look for `[mod-ui]` warnings. They usually log
+unrecognized descriptors.
 
 ---
 
-## Sección 4 — Logs no aparecen
+## Section 4 — Logs don't appear
 
-### Síntoma
-Llamas `host.log.info(...)` y no ves nada en consola.
+### Symptom
+You call `host.log.info(...)` and see nothing in console.
 
-### Causas
+### Causes
 
-1. **DevTools cerrados**. En build Electron dev: View → Toggle
+1. **DevTools closed**. In Electron dev build: View → Toggle
    Developer Tools (Cmd+Opt+I / Ctrl+Shift+I).
 
-2. **Build retail filtra `debug`**. Solo `info`/`warn`/`error`
-   se persisten. Mira en `Settings → Mods → <mod> → Logs`.
+2. **Retail build filters `debug`**. Only `info`/`warn`/`error`
+   are persisted. See `Settings → Mods → <mod> → Logs`.
 
-3. **Activa el panel "Logs" del mod en retail**. Necesita modo
-   desarrollador activo (easter egg 7 taps en versión).
+3. **Activate the "Logs" panel of the mod in retail**. Needs
+   developer mode active (7 tap easter egg on version).
 
-4. **El mod NO está activo todavía**. Logs antes de
-   `onActivate` se descartan. Mueve a hook `onActivate` o a un
-   `subscribeEvent` que se dispare después.
+4. **The mod is NOT active yet**. Logs before `onActivate` are
+   discarded. Move to `onActivate` hook or to a `subscribeEvent`
+   that fires later.
 
 ---
 
-## Sección 5 — `permission denied` al storage
+## Section 5 — `permission denied` on storage
 
-### Síntoma
+### Symptom
 
 ```
 [mod-runtime] permission-denied: <mod-id>
@@ -200,32 +199,34 @@ Llamas `host.log.info(...)` y no ves nada en consola.
   reason: missing permission `storage` (or quota exceeded)
 ```
 
-### Causas
+### Causes
 
-1. **Permiso `storage` ausente**. Añade:
+1. **Missing `storage` permission**. Add:
 
    ```json
    { "type": "storage", "quotaKb": 32, "rationale": "..." }
    ```
 
-2. **Quota excedida**. Tu objeto serializado supera `quotaKb`.
-   Receta 4 del [`cookbook.md`](cookbook.md#4) explica cómo
-   detectarlo y trocear si es necesario.
+2. **Quota exceeded**. Your serialized object exceeds `quotaKb`.
+   Recipe 4 of [`cookbook.md`](cookbook.md#4) explains how to
+   detect and split if needed.
 
-3. **Storage corrupto**. Raro. Borra `userData/<game>/mods/<mod>/storage.json` y reinicia.
+3. **Storage corrupted**. Rare. Delete
+   `userData/<game>/mods/<mod>/storage.json` and restart.
 
 ---
 
-## Sección 6 — App Store rechaza el bundle (iOS)
+## Section 6 — App Store rejects the bundle (iOS)
 
-### Síntoma
-Build iOS pasa por App Store Connect → reviewer rechaza con §3.3.2.
+### Symptom
+iOS build goes through App Store Connect → reviewer rejects with
+§3.3.2.
 
-### Causa
-La build retail iOS NO debe incluir ningún runtime de mods (App
-Store §3.3.2 prohíbe ejecución de código no firmado). El sistema
-de mods tiene un **mod-free build mode** que tree-shakea TODO el
-runtime al compilar.
+### Cause
+iOS retail build must NOT include any mod runtime (App Store
+§3.3.2 prohibits execution of unsigned code). The mod system has
+a **mod-free build mode** that tree-shakes ALL the runtime at
+compile time.
 
 ### Fix
 
@@ -233,74 +234,75 @@ runtime al compilar.
 GAMEFW_MODS_BUNDLED_ONLY=1 pnpm build:game snake-classic --mode=capacitor --target=ios
 ```
 
-`GAMEFW_MODS_BUNDLED_ONLY=1` excluye el `ModRuntime` y todos los
-motores del bundle. Solo los mods first-party PRE-COMPILADOS Y
-FIRMADOS por el estudio sobreviven (como contenido estático, no
-ejecutable dinámico).
+`GAMEFW_MODS_BUNDLED_ONLY=1` excludes the `ModRuntime` and all
+engines from the bundle. Only first-party mods PRE-COMPILED AND
+SIGNED by the studio survive (as static content, not dynamic
+executable).
 
-Ver [`mod-free-builds.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/implementation/mod-free-builds.md)
-para detalles.
+See [`mod-free-builds.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/implementation/mod-free-builds.md)
+for details.
 
 ---
 
-## Sección 7 — Steam Workshop upload falla
+## Section 7 — Steam Workshop upload fails
 
-### Causas comunes
+### Common causes
 
-1. **ZIP demasiado grande**. Workshop limita 100 MB por item.
-   `pnpm pack` debería estar <500 KB típico. Si tu ZIP es 50+
-   MB, probablemente has incluido `node_modules/` o `src/` por
-   error. Verifica el contenido:
+1. **ZIP too big**. Workshop limits 100 MB per item. `pnpm pack`
+   should be <500 KB typical. If your ZIP is 50+ MB, you've
+   probably included `node_modules/` or `src/` by mistake.
+   Verify the content:
 
    ```bash
    unzip -l dist/<modId>-<version>.zip
    ```
 
-2. **Falta preview image**. Workshop exige al menos 1 imagen
-   800×450 (no el icono 256×256). Sube una screenshot del mod en
-   acción.
+2. **Missing preview image**. Workshop requires at least 1
+   image 800×450 (not the 256×256 icon). Upload a screenshot of
+   the mod in action.
 
-3. **Tags inválidos**. Solo tags del catálogo del juego target.
-   Lista en `scripts/mods/workshop-config.json.games.<gameId>.tags.whitelist`.
+3. **Invalid tags**. Only tags from the target game's catalog.
+   List in `scripts/mods/workshop-config.json.games.<gameId>.tags.whitelist`.
 
-4. **Cuenta Steam sin Workshop habilitado**. Algunos juegos
-   requieren tener jugado X horas para postear. Verifica en la
-   página del juego que el botón "Create Item" aparezca.
+4. **Steam account without Workshop enabled**. Some games require
+   playing X hours before posting. Verify on the game's page
+   that the "Create Item" button appears.
 
 ---
 
-## Sección 8 — Diferencias dev vs retail
+## Section 8 — Dev vs retail differences
 
-Mismo código, comportamiento distinto entre `pnpm dev:game` y
-build retail. Causas comunes:
+Same code, different behavior between `pnpm dev:game` and retail
+build. Common causes:
 
-| Comportamiento | Dev | Retail |
+| Behavior | Dev | Retail |
 |---|---|---|
-| `host.log.debug` | Visible en DevTools | Silenciado |
-| Sideload directorio | Siempre cargado | Solo con easter egg activado |
-| Firmas Ed25519 | Skip (todo signed: false) | Validadas (placeholder → quarantine) |
+| `host.log.debug` | Visible in DevTools | Silenced |
+| Sideload directory | Always loaded | Only with easter egg activated |
+| Ed25519 signatures | Skip (everything signed: false) | Validated (placeholder → quarantine) |
 | `process.env.NODE_ENV` | `'development'` | `'production'` |
-| HMR del mod | Sí con `pnpm dev:mod` | No (carga al boot) |
+| Mod HMR | Yes with `pnpm dev:mod` | No (loaded at boot) |
 
-Si tu mod funciona en dev pero falla en retail, casi siempre es:
-- Firma faltante (`pnpm build:release` sin `GAMEFW_MODS_SIGN_KEY`).
-- Permiso solo necesario por `host.log.debug` (que no se llama en
-  retail, así que no se nota).
-- Sideload no activado.
+If your mod works in dev but fails in retail, it's almost always:
+- Missing signature (`pnpm build:release` without
+  `GAMEFW_MODS_SIGN_KEY`).
+- Permission only needed for `host.log.debug` (which isn't called
+  in retail, so it goes unnoticed).
+- Sideload not activated.
 
 ---
 
-## Sección 9 — Mod activo, pero el juego no cambia
+## Section 9 — Mod active, but the game doesn't change
 
-Hueco común. Has llamado a `gameConfigSet` y aparentemente todo
-OK pero el juego no aplica el valor.
+Common pitfall. You called `gameConfigSet` and apparently
+everything's OK but the game doesn't apply the value.
 
 ### Checks
 
-1. **Has llamado `gameConfigSet` al inicio de partida**. El
-   `gameConfigSet` aplica al estado del juego. Si lo llamas
-   ANTES de `GAME_STARTED`, el juego aún no existe — pierde el
-   override. Llama dentro de hook `GAME_STARTED`:
+1. **Did you call `gameConfigSet` at game start**. `gameConfigSet`
+   applies to game state. If you call it BEFORE `GAME_STARTED`,
+   the game doesn't exist yet — the override is lost. Call inside
+   `GAME_STARTED` hook:
 
    ```ts
    host.subscribeEvent('GAME_STARTED', async () => {
@@ -310,40 +312,40 @@ OK pero el juego no aplica el valor.
    });
    ```
 
-2. **Tunable name correcto**. `gameConfigSet({ name: 'maxLives'
-   })` exige que el juego haya declarado ese tunable. Si está
-   mal escrito (`'max-lives'`, `'maxLifes'`), `gameConfigSet`
-   rechaza con `not-found`.
+2. **Correct tunable name**. `gameConfigSet({ name: 'maxLives'
+   })` requires the game to have declared that tunable. If
+   misspelled (`'max-lives'`, `'maxLifes'`), `gameConfigSet`
+   rejects with `not-found`.
 
-3. **El valor está dentro del rango del tunable**. Cada tunable
-   tiene `min`/`max`. Si pasas un valor fuera, el juego lo
-   recorta silenciosamente.
+3. **Value within the tunable's range**. Each tunable has
+   `min`/`max`. If you pass an out-of-range value, the game
+   silently clamps it.
 
-4. **Sin permiso `state-write`**. Algunos tunables son
-   read-only durante una partida en curso. `GAME_STARTED` es el
-   momento safe para escribir.
+4. **No `state-write` permission**. Some tunables are read-only
+   during a play session in progress. `GAME_STARTED` is the
+   safe moment to write.
 
 ---
 
-## Cómo abrir un issue útil
+## How to open a useful issue
 
-Si nada de lo anterior funciona, abre issue con:
+If none of the above works, open an issue with:
 
-1. **Versión del juego**: `Settings → About`.
-2. **Versión del mod**: `mod.json:version`.
-3. **OS + arquitectura**: `macOS 14.6 (Apple Silicon)`, etc.
-4. **`mod.json` completo** (anonimiza si tiene info personal).
-5. **Logs**: copia el bloque `[mod-runtime]` y `[mod-loader]` de
-   DevTools.
-6. **Pasos para reproducir**: instalar mod → activar → hacer X →
-   esperar Y → ver Z.
+1. **Game version**: `Settings → About`.
+2. **Mod version**: `mod.json:version`.
+3. **OS + architecture**: `macOS 14.6 (Apple Silicon)`, etc.
+4. **Complete `mod.json`** (anonymize if it has personal info).
+5. **Logs**: copy the `[mod-runtime]` and `[mod-loader]` block
+   from DevTools.
+6. **Steps to reproduce**: install mod → activate → do X → wait
+   Y → see Z.
 
-Con eso el estudio puede diagnosticarlo en minutos.
+With that, the studio can diagnose it in minutes.
 
-## Ver también
+## See also
 
-- [`tutorial/`](tutorial/01-hello-mod.md) — curso desde cero.
-- [`cookbook.md`](cookbook.md) — recetas copy-paste.
-- [`api-reference.md`](api-reference.md) — catálogo `host.*`.
-- [`manifest-format.md`](manifest-format.md) — todos los
-  permisos y tipos.
+- [`tutorial/`](tutorial/01-hello-mod.md) — course from zero.
+- [`cookbook.md`](cookbook.md) — copy-paste recipes.
+- [`api-reference.md`](api-reference.md) — `host.*` catalog.
+- [`manifest-format.md`](manifest-format.md) — all permissions
+  and types.

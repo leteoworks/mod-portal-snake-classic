@@ -5,33 +5,33 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Lección 1 — Tu primer mod en 10 minutos
+# Lesson 1 — Your first mod in 10 minutes
 
-Objetivo: tener un mod activo en Snake Classic que añada un tab a
-`Settings → Mods` y muestre una notificación al terminar la
-partida. Cero conocimiento previo del framework.
+Goal: have a mod live in Snake Classic that adds a tab to
+`Settings → Mods` and shows a notification when the game ends.
+Zero prior knowledge of the framework required.
 
-> Si solo quieres ver código real de producción, mira el código
-> abierto de [`studio.gameplay-tuner`](https://github.com/leteoworks/mod-template-snake-classic)
-> después de esta lección.
+> If you just want to see real production code, check out
+> [`studio.gameplay-tuner`](https://github.com/leteoworks/mod-template-snake-classic)
+> after this lesson.
 
 ---
 
-## El ciclo
+## The cycle
 
 ```
    ┌─────────┐    pnpm build    ┌──────────┐    sideload    ┌──────┐
-   │  src/   │ ───────────────▶ │ dist/    │ ─────────────▶ │ juego │
+   │  src/   │ ───────────────▶ │ dist/    │ ─────────────▶ │ game │
    └─────────┘                  └──────────┘                └──────┘
         ▲                                                       │
-        └───────────────── editar + iterar ─────────────────────┘
+        └───────────────── edit + iterate ──────────────────────┘
 ```
 
-Cada lección de este tutorial añade una pieza nueva al ciclo.
+Each lesson in this tutorial adds a new piece to the cycle.
 
 ---
 
-## 1 — Clonar el template
+## 1 — Clone the template
 
 ```bash
 npx degit leteoworks/mod-portal-snake-classic/examples/hello-mod my-first-mod
@@ -39,19 +39,20 @@ cd my-first-mod
 pnpm install
 ```
 
-El template trae `mod.json`, `src/index.ts`, `package.json` y
-`build.mjs` listos. Solo necesitas editarlos.
+The template comes with `mod.json`, `src/index.ts`, `package.json`
+and `build.mjs` ready to go. You only need to edit them.
 
 ---
 
-## 2 — Personalizar `mod.json`
+## 2 — Customize `mod.json`
 
-Cambia el `id` y `metadata.name` (el resto déjalo igual por ahora):
+Change the `id` and `metadata.name` (leave the rest alone for
+now):
 
 ```json
 {
   "manifestVersion": 1,
-  "id": "tuhandle.hello-mod",
+  "id": "yourhandle.hello-mod",
   "version": "0.1.0",
   "target": { "gameId": "snake-classic", "gameVersion": "^1.0.0" },
   "engine": { "preferred": "quickjs-declarative-ui", "fallbacks": ["isolated-vm"] },
@@ -60,77 +61,77 @@ Cambia el `id` y `metadata.name` (el resto déjalo igual por ahora):
   "permissions": [
     {
       "type": "settings-ui",
-      "rationale": "Aporta un tab con un toggle de saludo."
+      "rationale": "Adds a tab with a greeting toggle."
     },
     {
       "type": "events",
       "subscribe": ["GAME_OVER"],
-      "rationale": "Saluda al jugador cuando termina la partida."
+      "rationale": "Greet the player when the game ends."
     },
     {
       "type": "storage",
       "quotaKb": 16,
-      "rationale": "Guarda si el saludo está activado."
+      "rationale": "Save whether the greeting is on."
     }
   ],
   "metadata": {
     "name": "Hello Mod",
-    "description": "Mi primer mod.",
-    "author": "Tu Nombre",
+    "description": "My first mod.",
+    "author": "Your Name",
     "license": "MIT"
   }
 }
 ```
 
-Reglas clave:
-- **`id`** debe ser único globalmente. Convención `<handle>.<short-name>`.
-- **Cada permiso necesita `rationale`** — el jugador lo lee en el prompt
-  de permisos. No trivial.
+Key rules:
+- **`id`** must be globally unique. Convention `<handle>.<short-name>`.
+- **Every permission needs `rationale`** — the player reads it in
+  the permission prompt. Don't leave it trivial.
 
 ---
 
-## 3 — Escribir el código
+## 3 — Write the code
 
 `src/index.ts`:
 
 ```ts
-// Tab de settings con un toggle.
+// Settings tab with a toggle.
 host.registerSettingsTab?.({
   id: 'hello-mod',
   title: 'Hello Mod',
   icon: 'mood',
   sections: [{
     kind: 'card',
-    title: 'Saludo',
+    title: 'Greeting',
     children: [{
       kind: 'toggle',
-      label: 'Saludar al terminar la partida',
+      label: 'Greet at game over',
       binding: 'greetOnGameOver',
     }],
   }],
 });
 
-// Reaccionar al evento del juego.
+// React to the game event.
 host.subscribeEvent('GAME_OVER', async (payload) => {
   const stored = await host.storage?.get('greetOnGameOver');
   const enabled = stored?.ok ? stored.value : true;
   if (!enabled) return;
 
   const score = (payload as { finalScore?: number })?.finalScore ?? 0;
-  host.log.info(`[hello-mod] Partida terminada con ${score} puntos.`);
+  host.log.info(`[hello-mod] Game over with ${score} points.`);
 });
 
-host.log.info('[hello-mod] cargado v0.1.0');
+host.log.info('[hello-mod] loaded v0.1.0');
 ```
 
-Tres APIs usadas:
-- **`host.registerSettingsTab(descriptor)`** — UI declarativa. El
-  binding `'greetOnGameOver'` se conecta automáticamente al
-  `host.storage` del mod: el toggle persiste solo.
-- **`host.subscribeEvent(name, handler)`** — reaccionar a eventos
-  del juego. Aquí `GAME_OVER` con su payload.
-- **`host.storage.get(key)`** — leer del storage del mod (cuotaKb 16
-  declarada en el manifest).
+Three APIs used:
+- **`host.registerSettingsTab(descriptor)`** — declarative UI. The
+  binding `'greetOnGameOver'` automatically connects to the mod's
+  `host.storage`: the toggle persists by itself.
+- **`host.subscribeEvent(name, handler)`** — react to game events.
+  Here `GAME_OVER` with its payload.
+- **`host.storage.get(key)`** — read from the mod's storage
+  (quotaKb 16 declared in the manifest).
 
 ---
 
@@ -140,57 +141,57 @@ Tres APIs usadas:
 pnpm build
 ```
 
-Genera `dist/mod.js` (~5 KB minificado, IIFE ES2020 sin deps).
+Produces `dist/mod.js` (~5 KB minified, IIFE ES2020 with no
+dependencies).
 
 ---
 
 ## 5 — Sideload
 
-Copia el proyecto al userData del juego:
+Copy the project to the game's userData:
 
 ```bash
 # macOS:
-cp -r . ~/Library/Application\ Support/snake-classic/mods/tuhandle.hello-mod/
+cp -r . ~/Library/Application\ Support/snake-classic/mods/yourhandle.hello-mod/
 # Windows: %APPDATA%/snake-classic/mods/<modId>/
 # Linux:   ~/.config/snake-classic/mods/<modId>/
 ```
 
-> Solo necesitas `mod.json` + `dist/mod.js` (y `locales/` si declaras
-> i18n). El resto es local de tu proyecto.
+> You only need `mod.json` + `dist/mod.js` (and `locales/` if you
+> declare i18n). The rest is your local project.
 
 ---
 
-## 6 — Activar y probar
+## 6 — Activate and test
 
-1. Abre Snake Classic.
-2. Settings → Mods → tu mod aparece como **"Detectado (sideload)"**.
-3. Click "Activar". Acepta el prompt de permisos.
-4. Tab "Hello Mod" aparece en Settings.
-5. Asegúrate de que el toggle está ON.
-6. Juega una partida. Al terminar verás el log en consola (DevTools
-   abierto en build dev).
+1. Open Snake Classic.
+2. Settings → Mods → your mod shows up as **"Detected (sideload)"**.
+3. Click "Activate". Accept the permission prompt.
+4. The "Hello Mod" tab appears in Settings.
+5. Make sure the toggle is ON.
+6. Play a game. When it ends you'll see the log in the console
+   (DevTools open in a dev build).
 
 ---
 
-## Lo que has aprendido
+## What you've learned
 
-- Estructura de un mod: `mod.json` + `dist/mod.js`.
-- Cuatro APIs canónicas: `registerSettingsTab`, `subscribeEvent`,
+- Mod structure: `mod.json` + `dist/mod.js`.
+- Four canonical APIs: `registerSettingsTab`, `subscribeEvent`,
   `storage.get`, `log`.
-- El ciclo edit → build → sideload → reload.
-- El concepto **binding**: la UI escribe al storage del mod
-  automáticamente.
+- The cycle: edit → build → sideload → reload.
+- The **binding** concept: the UI writes to the mod's storage
+  automatically.
 
-## Lo que viene
+## What's next
 
-[**Lección 2 — Slider que cambia un valor del juego en tiempo
-real**](02-slider-tunable.md). Vas a controlar la velocidad inicial
-de Snake con un slider. Aprendes `host.callHostFn` y el patrón
-"aplicar config al inicio de cada partida".
+[**Lesson 2 — Slider that tunes the game in real time**](02-slider-tunable.md).
+You'll control Snake's initial speed with a slider. You'll learn
+`host.callHostFn` and the "apply config at game start" pattern.
 
-## Iteración rápida (opt-in)
+## Fast iteration (opt-in)
 
-Si vas a trabajar dentro del monorepo del estudio como mod
-first-party, ver [`dev-workflow.md`](../dev-workflow.md) — hay
-HMR vía `pnpm dev:mod` que evita el ciclo manual sideload + reload.
-Para mods externos, el ciclo manual de esta lección es lo estándar.
+If you're working inside the studio's monorepo as a first-party
+mod, see [`dev-workflow.md`](../dev-workflow.md) — there's HMR via
+`pnpm dev:mod` that skips the manual sideload + reload cycle. For
+external mods, the manual cycle in this lesson is the standard.

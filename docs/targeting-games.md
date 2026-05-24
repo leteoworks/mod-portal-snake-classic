@@ -5,15 +5,16 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Apuntar tu mod a un juego concreto
+# Targeting your mod to a specific game
 
-Tu mod declara a qué juego va dirigido. Esta guía cubre cómo elegir el
-target correcto y por qué tu mod funcionará en distintos bundles
-(standalone, collections) sin que tengas que publicar varios.
+Your mod declares which game it targets. This guide covers how to
+pick the right target and why your mod will work in different
+bundles (standalone, collections) without you needing to publish
+multiple copies.
 
 ---
 
-## `target.gameId` — la decisión clave
+## `target.gameId` — the key decision
 
 ```json
 {
@@ -21,20 +22,20 @@ target correcto y por qué tu mod funcionará en distintos bundles
 }
 ```
 
-`gameId` es la **identidad lógica** del juego dentro del framework, no
-su nombre comercial ni AppID. Inmutable a lo largo de la vida del
-juego.
+`gameId` is the game's **logical identity** within the framework,
+not its commercial name nor AppID. Immutable throughout the
+game's lifetime.
 
-Lo encuentras en:
-- `docs/games/<id>/README.md` del repo del estudio.
-- La pantalla "About" del juego (suele mostrarlo).
-- La doc del SDK / host-api-changelog.
+You'll find it in:
+- `docs/games/<id>/README.md` of the studio's repo.
+- The game's "About" screen (usually shows it).
+- The SDK / host-api-changelog docs.
 
-Cuando dudes: pregunta al estudio. Es información pública.
+When in doubt: ask the studio. It's public information.
 
 ---
 
-## Por qué no apuntas al bundle
+## Why you don't target the bundle
 
 ```
 ❌ "target.gameId": "classics-collection"
@@ -42,36 +43,37 @@ Cuando dudes: pregunta al estudio. Es información pública.
 ✅ "target.gameId": "snake-classic"
 ```
 
-El framework está diseñado para que el mismo mod funcione en:
+The framework is designed so the same mod works in:
 - Snake Classic standalone (Steam App ID 1234567)
-- Snake Classic dentro de Classics Collection (Steam App ID 4707310)
+- Snake Classic inside Classics Collection (Steam App ID 4707310)
 
-Apuntar al `gameId` lógico te garantiza ambos sin esfuerzo. Apuntar al
-bundle te ataría a uno.
-
----
-
-## Workshop y Steam AppIDs
-
-Workshop publica contra un AppID. Tu mod aparece bajo el AppID que
-elijas para publicar.
-
-El framework mantiene un mapping interno:
-
-```
-gameId 'snake-classic' → AppIDs descubiertos: [1234567, 4707310]
-```
-
-Esto significa: si publicas tu mod en Workshop bajo AppID 1234567
-(standalone), los jugadores de Classics Collection (AppID 4707310)
-también lo verán y podrán instalarlo.
-
-Recomendación: publica bajo el AppID **standalone** (suele tener más
-distribución). Si solo existe la collection, publica contra ese.
+Targeting the logical `gameId` guarantees both with no effort.
+Targeting the bundle would tie you to one.
 
 ---
 
-## `target.gameVersion` — rango compatible
+## Workshop and Steam AppIDs
+
+Workshop publishes against an AppID. Your mod appears under the
+AppID you choose to publish.
+
+The framework maintains an internal mapping:
+
+```
+gameId 'snake-classic' → discovered AppIDs: [1234567, 4707310]
+```
+
+This means: if you publish your mod on Workshop under AppID
+1234567 (standalone), Classics Collection players (AppID
+4707310) will also see it and can install it.
+
+Recommendation: publish under the **standalone** AppID (usually
+has more distribution). If only the collection exists, publish
+against that one.
+
+---
+
+## `target.gameVersion` — compatible range
 
 ```json
 "target": {
@@ -81,72 +83,77 @@ distribución). Si solo existe la collection, publica contra ese.
 ```
 
 SemVer range:
-- `^2.0.0`: compatible con 2.0.0, 2.5.7, 2.99.99 — NO 3.0.0.
-- `~2.0.0`: compatible con 2.0.x — NO 2.1.0.
-- `>=2.0.0 <3.0.0`: explícito.
+- `^2.0.0`: compatible with 2.0.0, 2.5.7, 2.99.99 — NOT 3.0.0.
+- `~2.0.0`: compatible with 2.0.x — NOT 2.1.0.
+- `>=2.0.0 <3.0.0`: explicit.
 
-Pon el rango más amplio que has testeado. Si solo probaste con 2.3.0:
+Use the widest range you've tested. If you only tested with
+2.3.0:
 
 ```
-"gameVersion": "^2.3.0"   // bien
-"gameVersion": "^2.0.0"   // optimista; podría romperse con 2.0.x
+"gameVersion": "^2.3.0"   // good
+"gameVersion": "^2.0.0"   // optimistic; might break with 2.0.x
 ```
 
-Después de testear con una version nueva del juego, **publica una
-nueva versión de tu mod** con el rango ampliado.
+After testing with a new game version, **publish a new version
+of your mod** with the widened range.
 
 ---
 
-## `requires.hostApi` — la otra mitad del contrato
+## `requires.hostApi` — the other half of the contract
 
 ```json
 "requires": { "hostApi": "^1.0.0" }
 ```
 
-Esto compara contra el `host.api.version` del juego. Si la host API
-del juego pasa de 1.x a 2.x (breaking), tu mod queda `incompatible`
-hasta que publiques una versión con `requires.hostApi: '^2.0.0'`.
+This compares against the game's `host.api.version`. If the
+game's host API jumps from 1.x to 2.x (breaking), your mod is
+marked `incompatible` until you publish a version with
+`requires.hostApi: '^2.0.0'`.
 
-El estudio mantiene
-`docs/games/<id>/host-api-changelog.md` con cada cambio. Síguelo si
-quieres saber cuándo necesitas re-publicar.
+The studio maintains
+`docs/games/<id>/host-api-changelog.md` with each change. Follow
+it if you want to know when you need to re-publish.
 
 ---
 
-## `requires.dlcs` — dependencias de DLC
+## `requires.dlcs` — DLC dependencies
 
-Si tu mod modifica contenido de un DLC:
+If your mod modifies DLC content:
 
 ```json
 "requires": { "dlcs": ["snake-classic.endless-plus"] }
 ```
 
-El loader verifica `EntitlementService.hasAccess()` antes de activar tu
-mod. Si el DLC no está owned, el mod aparece "requiere DLC X" con
-mensaje claro al jugador.
+The loader checks `EntitlementService.hasAccess()` before
+activating your mod. If the DLC isn't owned, the mod appears
+"requires DLC X" with a clear message to the player.
 
-Para mods que **funcionan sin DLC pero ganan funciones con él**: no
-lo declares como required. Inspecciona `host.entitlements.getActiveDlcs()`
-en tu código y adapta el comportamiento.
+For mods that **work without the DLC but gain features with
+it**: don't declare it as required. Inspect
+`host.entitlements.getActiveDlcs()` in your code and adapt
+behavior.
 
 ---
 
 ## Multi-game targets
 
-**No soportado**: un mod apunta a **un solo juego**. Si quieres que
-funcione en varios juegos del framework, publica varios mods (uno por
-juego) compartiendo código común que tú mantengas.
+**Not supported**: a mod targets **one single game**. If you want
+it to work on multiple framework games, publish multiple mods
+(one per game) sharing common code you maintain.
 
-Razón: cada juego tiene su propio host API, su propia policy, sus
-propias superficies. "Un mod universal" sería frágil.
+Reason: every game has its own host API, its own policy, its own
+surfaces. "A universal mod" would be fragile.
 
 ---
 
-## Resumen
+## Summary
 
-- Apunta al `gameId` lógico, no al AppID ni al nombre comercial.
-- Rangos SemVer en `target.gameVersion` y `requires.hostApi`.
-- Tu mod funciona automáticamente en standalone y en bundles (Classics
-  Collection) que monten ese juego.
-- Workshop mapping: publica contra un AppID, descubierto desde todos.
-- DLCs requeridos declarados en `requires.dlcs[]`.
+- Target the logical `gameId`, not the AppID nor the commercial
+  name.
+- SemVer ranges in `target.gameVersion` and `requires.hostApi`.
+- Your mod automatically works in standalone and in bundles
+  (Classics Collection) that mount that game.
+- Workshop mapping: publish against one AppID, discovered from
+  all.
+- Required DLCs declared in `requires.dlcs[]`.
