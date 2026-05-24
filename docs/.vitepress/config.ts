@@ -40,8 +40,8 @@ export default defineConfig({
   themeConfig: {
     siteTitle: 'Mods · Snake Classic',
     nav: [
-      { text: 'Empezar', link: '/getting-started' },
-      { text: 'Manifest', link: '/manifest-format' },
+      { text: 'Tutorial', link: '/tutorial/01-hello-mod' },
+      { text: 'Cookbook', link: '/cookbook' },
       { text: 'API', link: '/api-reference' },
       { text: 'Publicar', link: '/publishing' },
       { text: 'Destacados', link: '/featured' },
@@ -68,11 +68,29 @@ export default defineConfig({
         text: 'Introducción',
         items: [
           { text: 'Bienvenida', link: '/' },
-          { text: 'Empezar a hacer mods', link: '/getting-started' },
+          { text: 'Antes de empezar', link: '/getting-started' },
         ],
       },
       {
-        text: 'Manifest y API',
+        text: 'Curso paso a paso',
+        collapsed: false,
+        items: [
+          { text: '1. Tu primer mod en 10 min', link: '/tutorial/01-hello-mod' },
+          { text: '2. Slider que cambia el juego', link: '/tutorial/02-slider-tunable' },
+          { text: '3. Reaccionar a eventos', link: '/tutorial/03-game-events' },
+          { text: '4. Power-ups (Snake)', link: '/tutorial/04-power-ups' },
+          { text: '5. Release a Workshop', link: '/tutorial/05-release-ready' },
+        ],
+      },
+      {
+        text: 'Práctico',
+        items: [
+          { text: 'Cookbook (recetas)', link: '/cookbook' },
+          { text: 'Troubleshooting', link: '/troubleshooting' },
+        ],
+      },
+      {
+        text: 'Referencia',
         items: [
           { text: 'manifest-format', link: '/manifest-format' },
           { text: 'API reference', link: '/api-reference' },
