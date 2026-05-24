@@ -13,11 +13,26 @@ Tu primer mod, end-to-end. Asumimos Snake Classic como target.
 
 ## 1 — Scaffold del proyecto
 
+**Opción A — usar el scaffold del framework (recomendado)**:
+
+```bash
+# Desde un clone del framework:
+cp -R scaffolds/mod-template-snake-classic ~/projects/my-first-mod
+cd ~/projects/my-first-mod
+pnpm install
+# Edita mod.json (id, metadata) + src/index.ts y arranca: pnpm watch
+```
+
+Ver [`scaffolds/mod-template-snake-classic/README.md`](../../../scaffolds/mod-template-snake-classic/README.md)
+para detalles.
+
+**Opción B — desde cero**:
+
 ```bash
 mkdir my-first-mod
 cd my-first-mod
 npm init -y
-npm install -D esbuild
+npm install -D esbuild typescript
 ```
 
 Estructura mínima:
@@ -26,10 +41,23 @@ Estructura mínima:
 my-first-mod/
 ├── mod.json
 ├── src/
-│   └── index.js
-├── dist/                # generado por esbuild
+│   ├── index.ts
+│   └── globals.d.ts      # declara `host` como global ambient
+├── build.mjs             # pipeline esbuild
+├── tsconfig.json
+├── dist/                 # generado por esbuild
 └── package.json
 ```
+
+Antes de empaquetar o publicar, lintea con:
+
+```bash
+node /ruta/al/framework/scripts/mods/validate-mod.mjs .
+```
+
+(o `pnpm mods:validate <path>` desde el repo del framework). El
+validator chequea manifest + App Store §3.3.2 compliance sin
+necesitar el juego levantado.
 
 ---
 

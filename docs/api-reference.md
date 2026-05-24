@@ -100,6 +100,41 @@ const r = await host.storage.set('my-config', { foo: 1 })
 Cuota declarada en el manifest: `{ type: 'storage', quotaKb: 128 }`.
 Tu storage es aislado — ningún otro mod ni el juego pueden leerlo.
 
+### Concurrencia: last-write-wins (FIX-23.3, audit J-F3)
+
+Si tu mod tiene un `settings-ui` con bindings reactivos (slider,
+toggle, etc.) Y un hook (`onEvent:GAME_STARTED`, etc.) que también
+escribe en storage, los dos paths pueden competir sobre la misma key.
+Reglas que debes asumir:
+
+- El backing storage (`syncStorage` del framework) es **síncrono**.
+  No hay race tipo "two writes at the same nanosecond" — el JS
+  event loop ordena ambos efectos.
+- El que ejecuta más tarde gana. La UI (`setBinding`) está
+  bridge-ada via promise → su efecto cae al microtask queue. El hook
+  del mod (`host.storage.set`) idem.
+- Si el jugador mueve el slider mientras `GAME_STARTED` dispara, el
+  orden depende del event loop: typically la UI gana (el evento del
+  jugador llega primero) pero NO está garantizado.
+
+**Anti-patrón**: escribir la misma key desde dos paths sin un eje de
+coordinación. Patrón canónico:
+
+```js
+// Opción A — el hook del mod LEE para aplicar pero NO escribe.
+host.subscribeEvent('GAME_STARTED', async () => {
+  const cfg = await host.storage.get('speed-curve')
+  applyToGame(cfg)
+})
+// El binding UI (`setBinding('speed-curve', ...)`) es el ÚNICO writer.
+
+// Opción B — particiona el key-space. La UI escribe 'config.*',
+// el hook escribe 'runtime-state.*'. Cero overlap.
+```
+
+Si necesitas que el hook recompute basado en el binding actual,
+léelo *fresh* en cada invocación (no caches).
+
 ---
 
 ## Settings UI declarativa
