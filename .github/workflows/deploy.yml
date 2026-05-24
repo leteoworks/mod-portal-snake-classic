@@ -2,7 +2,7 @@
 #
 # Trigger: push a main → build Vitepress + Storybook → publica a la
 # branch gh-pages. La URL pública resultante es
-# https://leteo.github.io/mod-portal-snake-classic/.
+# https://leteoworks.github.io/mod-portal-snake-classic/.
 #
 # Setup pre-requisito (acción del usuario, una vez):
 #   Settings → Pages → Source: "Deploy from a branch" → gh-pages /root.

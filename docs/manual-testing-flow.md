@@ -52,7 +52,7 @@ Para simular el flujo Steam estándar usamos
 `GAMEFW_MODS_BUNDLED_ONLY=1`: el mismo modo en que viaja el
 ejecutable que descargas de la Store.
 
-Spec normativa de los modos: [build-modes.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/build-modes.md).
+Spec normativa de los modos: [build-modes.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/build-modes.md).
 
 ---
 
@@ -279,7 +279,7 @@ Cuando quieras la verificación final antes del release real:
 ```bash
 NODE_ENV=production \
 GAMEFW_MODS_BUNDLED_ONLY=1 \
-GAMEFW_MODS_SIGN_KEY="$(cat ~/.leteo-keys/mod-sign-2026-01.b64)" \
+GAMEFW_MODS_SIGN_KEY="$(cat ~/.leteoworks-keys/mod-sign-2026-01.b64)" \
 pnpm build:game snake-classic --mode=electron
 ```
 
@@ -444,7 +444,7 @@ Cuando encuentres un bug y quieras reportarlo:
    ```
 
 Reporta en el doc canónico del incidente
-([operations/incident-response.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/operations/incident-response.md))
+([operations/incident-response.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/operations/incident-response.md))
 o como issue en GitHub si es bug del framework / mod.
 
 ---
@@ -468,7 +468,7 @@ DefinePlugin solo reemplaza accesos literales **declarados**.
 **Salvaguarda activa**: ESLint
 `framework/process-env-must-be-declared`. Antes de commitear,
 `pnpm exec eslint` falla si una env var no está declarada.
-[`build-quirks.md`](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/build-quirks.md#2-salvaguarda-activa).
+[`build-quirks.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/build-quirks.md#2-salvaguarda-activa).
 
 ### 2. Tab Mods muestra `mods.tab.title` literal en lugar del label
 
@@ -622,15 +622,15 @@ mod-compatible.
   (lado autor).
 - [`getting-started.md`](getting-started.md) — "hello mod" en 10 min
   (introducción genérica).
-- [`docs/mods/architecture/build-modes.md`](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/build-modes.md)
+- [`docs/mods/architecture/build-modes.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/build-modes.md)
   — los tres modos de build (`dev` / `bundled-only` / `mods-enabled`)
   con detalle del alias swap.
-- [`docs/mods/architecture/lifecycle.md`](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/lifecycle.md)
+- [`docs/mods/architecture/lifecycle.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/lifecycle.md)
   — ciclo de vida del mod: `installed` → `enabled` → `active` →
   `deactivated`.
-- [`docs/mods/security/signing-and-trust.md`](https://github.com/leteo/my-game-fw/blob/main/docs/mods/security/signing-and-trust.md)
+- [`docs/mods/security/signing-and-trust.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/security/signing-and-trust.md)
   — política de firma Ed25519 + trust tier filter.
-- [`docs/mods/operations/incident-response.md`](https://github.com/leteo/my-game-fw/blob/main/docs/mods/operations/incident-response.md)
+- [`docs/mods/operations/incident-response.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/operations/incident-response.md)
   — playbook ante incidentes.
 - [`game-mods/snake-classic/studio.gameplay-tuner/README.md`](../../../game-mods/snake-classic/studio.gameplay-tuner/README.md)
   — el mod canónico que usa este flujo como referencia.

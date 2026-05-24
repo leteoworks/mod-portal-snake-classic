@@ -9,7 +9,7 @@
 
 Spec completa de los campos del manifest desde la perspectiva del
 modder. Para la versión técnica que el framework consume, ver
-[../architecture/mod-manifest.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/mod-manifest.md).
+[../architecture/mod-manifest.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/mod-manifest.md).
 
 ---
 
@@ -88,7 +88,7 @@ Motor que tu mod necesita. Lo elige según lo que hace tu mod:
 - Si tu mod aporta UI HTML rica → `iframe-sandbox`.
 - Si tu mod tiene visualización gráfica → `web-worker-offscreen-canvas`.
 
-Lista de motores: [../engines/](https://github.com/leteo/my-game-fw/blob/main/docs/mods/engines/).
+Lista de motores: [../engines/](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/engines/).
 
 `fallbacks` permite que tu mod funcione si el motor preferido no está
 disponible. Pon variantes razonables; lista vacía es válida pero

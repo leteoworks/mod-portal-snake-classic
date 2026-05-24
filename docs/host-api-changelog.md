@@ -52,7 +52,7 @@ Superficie inicial expuesta al modder:
 
 20 eventos canónicos automáticos (no participación del modder).
 Listado completo en
-[framework-events.ts](https://github.com/leteo/my-game-fw/blob/main/src/modules/mod-runtime/telemetry/framework-events.ts).
+[framework-events.ts](https://github.com/leteoworks/my-game-fw/blob/main/src/modules/mod-runtime/telemetry/framework-events.ts).
 Resumen:
 
 - **Discovery + lifecycle** (8): `discovered`, `validated_ok`,
@@ -102,4 +102,4 @@ página antes de mergear el cambio al runtime.
 
 - [api-reference](/api-reference)
 - [manifest-format](/manifest-format)
-- [Filosofía del sistema (monorepo)](https://github.com/leteo/my-game-fw/blob/main/docs/mods/philosophy.md)
+- [Filosofía del sistema (monorepo)](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/philosophy.md)

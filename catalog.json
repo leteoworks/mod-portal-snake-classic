@@ -1,5 +1,5 @@
 {
-  "$schema": "https://leteo.github.io/mod-portal-snake-classic/catalog.schema.json",
+  "$schema": "https://leteoworks.github.io/mod-portal-snake-classic/catalog.schema.json",
   "gameId": "snake-classic",
   "version": "1.0.0",
   "hostApiVersion": "^1.0.0",

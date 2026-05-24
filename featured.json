@@ -1,5 +1,5 @@
 {
-  "$schema": "https://leteo.github.io/mod-portal-snake-classic/featured.schema.json",
+  "$schema": "https://leteoworks.github.io/mod-portal-snake-classic/featured.schema.json",
   "$comment": "Curación manual del estudio. Editar via PR. El portal Vitepress renderiza esta lista en docs/featured.md y en la home como 'Mods destacados'. Sin política dura — la curación es libre y se documenta en operations/featured-mods-curation.md.",
   "version": 1,
   "modOfTheMonth": null,

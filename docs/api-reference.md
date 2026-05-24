@@ -155,13 +155,13 @@ host.registerSettingsTab({
 
 **Catálogo de componentes UI disponible**:
 - Sistema framework-level + per-game:
-  [../architecture/mod-ui-component-system.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/mod-ui-component-system.md).
+  [../architecture/mod-ui-component-system.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/mod-ui-component-system.md).
 - Documentación visual interactiva por juego: **submódulo git**
   `mod-ui-catalog-<gameId>` con Storybook. URL del estudio o clone
   local con `pnpm storybook`. Incluye stories, snippets para copiar,
   ejemplos compuestos.
 - Vocabulario básico embedded del motor:
-  [../engines/quickjs-declarative-ui.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/engines/quickjs-declarative-ui.md).
+  [../engines/quickjs-declarative-ui.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/engines/quickjs-declarative-ui.md).
 
 Necesita permiso `{ type: 'settings-ui' }`.
 
@@ -187,7 +187,7 @@ host.renderPage({
 ```
 
 Detalles en
-[../architecture/mod-ui-component-system.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/mod-ui-component-system.md).
+[../architecture/mod-ui-component-system.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/mod-ui-component-system.md).
 
 ---
 
@@ -278,7 +278,7 @@ if (r.ok && r.status === 200) {
 ```
 
 Detalle:
-[../architecture/network-and-backend-access.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/network-and-backend-access.md).
+[../architecture/network-and-backend-access.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/network-and-backend-access.md).
 
 ---
 

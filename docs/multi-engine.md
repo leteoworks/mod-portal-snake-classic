@@ -10,7 +10,7 @@
 Tu mod declara qué motor necesita en `mod.json`. Esta guía te ayuda a
 elegirlo bien.
 
-> Contexto técnico de cada motor: [../engines/](https://github.com/leteo/my-game-fw/blob/main/docs/mods/engines/).
+> Contexto técnico de cada motor: [../engines/](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/engines/).
 
 ---
 
@@ -43,7 +43,7 @@ elegirlo bien.
   el loader prueba estos en orden.
 
 Lista de motores válida: ver
-[../architecture/mod-engine-capability.md § "EngineId"](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/mod-engine-capability.md).
+[../architecture/mod-engine-capability.md § "EngineId"](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/mod-engine-capability.md).
 
 ---
 

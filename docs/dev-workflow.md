@@ -441,7 +441,7 @@ Si NO querías hacer release pero quieres un build firmado, exporta
 la clave temporalmente:
 
 ```bash
-export GAMEFW_MODS_SIGN_KEY="$(cat ~/.leteo-keys/mod-sign-2026-01.b64)"
+export GAMEFW_MODS_SIGN_KEY="$(cat ~/.leteoworks-keys/mod-sign-2026-01.b64)"
 pnpm build:game snake-classic --mode=electron
 ```
 
@@ -521,14 +521,14 @@ da los tipos del HostBridge para mockear desde tests.
 ## Cross-links
 
 - [game-mods/README.md](../../../game-mods/README.md) — el subrepo
-- [docs/mods/README.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/README.md) — índice maestro del sistema de mods
+- [docs/mods/README.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/README.md) — índice maestro del sistema de mods
 - [docs/games/snake-classic/mods/gameplay-tuner-roadmap.md](../../games/snake-classic/mods/gameplay-tuner-roadmap.md)
   — roadmap del mod canónico
 - [src/modules/moddable/README.md](../../../src/modules/moddable/README.md)
   — familia declarativa que los mods consumen
-- [docs/mods/architecture/build-modes.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/build-modes.md)
+- [docs/mods/architecture/build-modes.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/build-modes.md)
   — modos `dev` / `bundled-only` / `mods-enabled`
-- [docs/mods/security/signing-and-trust.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/security/signing-and-trust.md)
+- [docs/mods/security/signing-and-trust.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/security/signing-and-trust.md)
   — detalles de firma Ed25519
 - [docs/mods/mod-development/getting-started.md](getting-started.md) —
   introducción genérica al sistema de mods (mods de terceros incluidos)

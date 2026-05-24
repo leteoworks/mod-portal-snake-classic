@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://leteo.github.io/mod-portal-snake-classic/featured.schema.json",
+  "$id": "https://leteoworks.github.io/mod-portal-snake-classic/featured.schema.json",
   "title": "Featured Mods",
   "description": "Curacion manual del estudio para mods destacados del juego. Editar via PR. El portal Vitepress renderiza esta lista.",
   "type": "object",

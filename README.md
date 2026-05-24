@@ -83,8 +83,8 @@ Workflow `.github/workflows/deploy.yml` ejecuta:
 2. `pnpm build`
 3. Publica `dist/` a la branch `gh-pages`.
 
-URL pública: `https://leteo.github.io/mod-portal-snake-classic/`
-(D4: GitHub Pages default; migrable a dominio propio).
+URL pública: `https://leteoworks.github.io/mod-portal-snake-classic/`
+(D-PORTAL-4: GitHub Pages default; migrable a dominio propio).
 
 ---
 

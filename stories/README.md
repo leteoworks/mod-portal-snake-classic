@@ -26,7 +26,7 @@ los renderiza con los tokens del juego.
 ```ts
 // stories/framework/toggle.stories.ts
 import type { Meta, StoryObj } from '@storybook/vue3';
-import { ModToggle } from '@leteo/mod-ui-components';
+import { ModToggle } from '@leteoworks/mod-ui-components';
 
 const meta: Meta<typeof ModToggle> = {
   title: 'Framework/Toggle',
@@ -41,5 +41,5 @@ export const Default: StoryObj = {
 
 ## Cross-links
 
-- [Mod UI component system (monorepo)](https://github.com/leteo/my-game-fw/blob/main/docs/mods/architecture/mod-ui-component-system.md)
+- [Mod UI component system (monorepo)](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/architecture/mod-ui-component-system.md)
 - [catalog.json](../catalog.json)

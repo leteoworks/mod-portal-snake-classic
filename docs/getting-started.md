@@ -199,7 +199,7 @@ Cambios en `src/index.js`:
 2. Restart del juego (los mods se cargan al boot).
 
 Para hot-reload durante desarrollo, ver
-[../implementation/enabling-mods.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/implementation/enabling-mods.md)
+[../implementation/enabling-mods.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/implementation/enabling-mods.md)
 sobre `dev mode` (no es estándar; depende del juego).
 
 ---

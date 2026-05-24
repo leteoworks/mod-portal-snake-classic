@@ -28,7 +28,7 @@
   ],
   "metadata": {
     "name": "Hello Mod",
-    "description": "Mod canonico de ejemplo. Util como punto de partida para tu propio mod. Cloname con `degit leteo/mod-portal-snake-classic/examples/hello-mod`.",
+    "description": "Mod canonico de ejemplo. Util como punto de partida para tu propio mod. Cloname con `degit leteoworks/mod-portal-snake-classic/examples/hello-mod`.",
     "author": "Leteo Works",
     "license": "MIT",
     "tags": ["example", "tutorial"]

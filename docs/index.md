@@ -14,7 +14,7 @@ hero:
       link: /getting-started
     - theme: alt
       text: Mira el template
-      link: https://github.com/leteo/mod-template-snake-classic
+      link: https://github.com/leteoworks/mod-template-snake-classic
     - theme: alt
       text: Steam Workshop
       link: https://steamcommunity.com/app/TBD/workshop/

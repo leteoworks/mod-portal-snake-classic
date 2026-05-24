@@ -2,9 +2,9 @@
 
 Selección curada por el estudio. Sin algoritmos: una persona del
 equipo elige y la lista vive en
-[`featured.json`](https://github.com/leteo/mod-portal-snake-classic/blob/main/featured.json)
+[`featured.json`](https://github.com/leteoworks/mod-portal-snake-classic/blob/main/featured.json)
 del repo del portal. Las elecciones se documentan en
-[`operations/featured-mods-curation.md`](https://github.com/leteo/my-game-fw/blob/main/docs/mods/operations/featured-mods-curation.md)
+[`operations/featured-mods-curation.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/operations/featured-mods-curation.md)
 del repo del framework.
 
 > **No es un sistema de partnership ni pago**. Aparecer aquí no
@@ -42,7 +42,7 @@ con el tag "Featured nomination"._
 Mod oficial first-party. Personaliza power-ups, velocidad y
 progresión con presets divertidos. Sirve de referencia viva para
 modders que estén empezando — su código está en
-[`src/games/snake-classic/mods/bundled/studio.fun-config/`](https://github.com/leteo/my-game-fw/tree/main/src/games/snake-classic/mods/bundled/studio.fun-config)
+[`src/games/snake-classic/mods/bundled/studio.fun-config/`](https://github.com/leteoworks/my-game-fw/tree/main/src/games/snake-classic/mods/bundled/studio.fun-config)
 del repo del framework, abierto y clonable.
 
 ---
@@ -69,4 +69,4 @@ Reactivo: si el estudio detecta que un mod featured se ha vuelto
 problemático (bugs persistentes, autor abandonó, comportamiento
 malicioso descubierto), sale inmediatamente del featured. Caso
 extremo → kill-switch operacional (ver
-[`kill-switch-runbook.md`](https://github.com/leteo/my-game-fw/blob/main/docs/mods/operations/kill-switch-runbook.md)).
+[`kill-switch-runbook.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/operations/kill-switch-runbook.md)).

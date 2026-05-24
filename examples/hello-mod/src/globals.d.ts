@@ -1,7 +1,7 @@
 /**
  * `host` es global ambient inyectado por el motor. NO importar
  * desde aqui (patron canonico, ver
- * https://leteo.github.io/mod-portal-snake-classic/getting-started).
+ * https://leteoworks.github.io/mod-portal-snake-classic/getting-started).
  */
 
 import type { ModHost } from './types';

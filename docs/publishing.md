@@ -113,7 +113,7 @@ playtest):
 
 Sideload mods son `unsigned` salvo que firmes con clave pública
 declarada (avanzado — ver firma manual con `ed25519` en
-[../security/signing-and-trust.md](https://github.com/leteo/my-game-fw/blob/main/docs/mods/security/signing-and-trust.md)).
+[../security/signing-and-trust.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/security/signing-and-trust.md)).
 
 ---
 

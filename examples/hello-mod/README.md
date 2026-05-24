@@ -5,7 +5,7 @@ Mod canónico de ejemplo. Útil como punto de partida.
 ## Clonar
 
 ```bash
-npx degit leteo/mod-portal-snake-classic/examples/hello-mod my-mod
+npx degit leteoworks/mod-portal-snake-classic/examples/hello-mod my-mod
 cd my-mod
 pnpm install
 pnpm build
