@@ -1,0 +1,1 @@
+import{_ as t,H as o,f as i,i as a}from"./chunks/framework.BauLNg70.js";const u=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"index.md","filePath":"index.md"}'),n={name:"index.md"};function s(l,e,r,d,c,h){return o(),i("div",null,[...e[0]||(e[0]=[a("",13)])])}const p=t(n,[["render",s]]);export{u as __pageData,p as default};
