@@ -1,7 +1,7 @@
 <!--
   ⚠ ARCHIVO AUTOGENERADO.
   Editar la fuente en docs/mods/mod-development/ del monorepo y
-  ejecutar `pnpm sync:mod-portal-docs`. NO editar manualmente aquí
+  ejecutar `pnpm mods:sync-portal-docs`. NO editar manualmente aquí
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
