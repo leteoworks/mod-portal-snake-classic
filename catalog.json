@@ -1,0 +1,144 @@
+{
+  "$schema": "https://leteo.github.io/mod-portal-snake-classic/catalog.schema.json",
+  "gameId": "snake-classic",
+  "version": "1.0.0",
+  "hostApiVersion": "^1.0.0",
+  "generatedAt": "2026-05-23T00:00:00Z",
+  "components": {
+    "framework": {
+      "toggle": {
+        "description": "Switch booleano con label",
+        "schema": {
+          "type": "object",
+          "required": ["label", "value"],
+          "properties": {
+            "label": { "type": "string" },
+            "value": { "type": "boolean" },
+            "disabled": { "type": "boolean" }
+          }
+        }
+      },
+      "slider": {
+        "description": "Slider numérico con rango configurable",
+        "schema": {
+          "type": "object",
+          "required": ["label", "value", "min", "max"],
+          "properties": {
+            "label": { "type": "string" },
+            "value": { "type": "number" },
+            "min": { "type": "number" },
+            "max": { "type": "number" },
+            "step": { "type": "number" }
+          }
+        }
+      },
+      "select": {
+        "description": "Dropdown con opciones predefinidas",
+        "schema": {
+          "type": "object",
+          "required": ["label", "options", "value"],
+          "properties": {
+            "label": { "type": "string" },
+            "value": { "type": "string" },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "value": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "radio": { "description": "Grupo de radios" },
+      "number-input": { "description": "Input numérico" },
+      "text-input": { "description": "Input texto sanitizado" },
+      "preset-buttons": { "description": "Grupo de botones tipo preset" },
+      "group": { "description": "Container con título y sección" },
+      "tabs": { "description": "Tabs anidados (max 1 nivel)" },
+      "collapsible": { "description": "Sección colapsable" },
+      "card": { "description": "Tarjeta con título + body" },
+      "heading": { "description": "Heading H2/H3/H4" },
+      "paragraph": { "description": "Texto markdown limitado" },
+      "icon": { "description": "Icono del catálogo del juego" },
+      "divider": { "description": "Separador visual" },
+      "spacer": { "description": "Espaciado vertical" },
+      "badge": { "description": "Badge pequeño con texto" },
+      "button": { "description": "Botón con onClick dispatch" },
+      "alert": { "description": "Alert info/warn/error/success" }
+    },
+    "game": {
+      "snake.power-up-card": {
+        "description": "Tarjeta para power-up con icono, name, descripción y toggle opcional",
+        "since": "1.0.0",
+        "schema": {
+          "type": "object",
+          "required": ["powerupId"],
+          "properties": {
+            "powerupId": {
+              "type": "string",
+              "enum": ["mega-fruit", "shield", "slow-mo", "double-points"]
+            },
+            "showProbability": { "type": "boolean" },
+            "enabled": { "type": "boolean" }
+          }
+        }
+      },
+      "snake.speed-curve-editor": {
+        "description": "Mini editor visual de la curva de velocidad",
+        "since": "1.0.0",
+        "schema": {
+          "type": "object",
+          "required": ["base", "curve"],
+          "properties": {
+            "base": { "type": "number" },
+            "curve": { "enum": ["linear", "exponential", "stepped"] },
+            "perLevelIncrement": { "type": "number" }
+          }
+        }
+      }
+    }
+  },
+  "events": {
+    "subscribable": [
+      "GAME_STARTED",
+      "POWERUP_SPAWNED",
+      "GAME_OVER",
+      "SCORE_INCREASED",
+      "SNAKE_DIED"
+    ],
+    "dispatchable": []
+  },
+  "statePaths": {
+    "readable": [
+      "GAME_DATA__RUN__SCORE__CURRENT",
+      "GAME_DATA__RUN__SCORE__MULTIPLIER",
+      "GAME_DATA__RUN__SPEED__LEVEL",
+      "GAME_DATA__RUN__SNAKE__LENGTH",
+      "GAME_DATA__RUN__POWERUP__ACTIVE",
+      "GAME_DATA__RUN__POWERUP__ACTIVE_VARIANT",
+      "GAME_DATA__APP_SYNC__PROGRESS__HIGH_SCORE"
+    ],
+    "writable": []
+  },
+  "hostFns": {
+    "togglePowerUp": {
+      "args": { "powerupId": "string", "enabled": "boolean" }
+    },
+    "setPowerUpSpawnChance": {
+      "args": { "powerupId": "string", "chance": "number" }
+    },
+    "setSpeedBase": {
+      "args": { "base": "number" }
+    },
+    "setSpeedProgression": {
+      "args": {
+        "curve": "string",
+        "perLevelIncrement": "number"
+      }
+    }
+  }
+}

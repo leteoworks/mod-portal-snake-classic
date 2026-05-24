@@ -1,0 +1,36 @@
+{
+  "manifestVersion": 1,
+  "id": "examples.hello-mod",
+  "version": "0.1.0",
+  "target": {
+    "gameId": "snake-classic",
+    "gameVersion": "^2.0.0"
+  },
+  "engine": {
+    "preferred": "quickjs-declarative-ui",
+    "fallbacks": ["quickjs"]
+  },
+  "requires": {
+    "hostApi": "^1.0.0"
+  },
+  "entry": "dist/mod.js",
+  "permissions": [
+    {
+      "type": "settings-ui",
+      "maxTabs": 1,
+      "rationale": "Anade un tab de saludo con un toggle de ejemplo"
+    },
+    {
+      "type": "events",
+      "subscribe": ["GAME_STARTED"],
+      "rationale": "Imprime un log cada vez que arranca una partida"
+    }
+  ],
+  "metadata": {
+    "name": "Hello Mod",
+    "description": "Mod canonico de ejemplo. Util como punto de partida para tu propio mod. Cloname con `degit leteo/mod-portal-snake-classic/examples/hello-mod`.",
+    "author": "Leteo Works",
+    "license": "MIT",
+    "tags": ["example", "tutorial"]
+  }
+}

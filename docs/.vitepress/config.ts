@@ -1,0 +1,118 @@
+/**
+ * Vitepress config del portal Snake Classic.
+ *
+ * Base path apunta a `/mod-portal-snake-classic/` que es el path
+ * default de GitHub Pages para
+ * `acamposruiz.github.io/mod-portal-snake-classic/`.
+ * Si el usuario migra a dominio propio (D-PORTAL-4 reabierto), cambiar
+ * `base` y `outDir` queda como deuda de la migración.
+ */
+
+import { defineConfig } from 'vitepress';
+
+export default defineConfig({
+  base: '/mod-portal-snake-classic/',
+  lang: 'es-ES',
+  title: 'Mods para Snake Classic',
+  description:
+    'Documentación oficial para crear mods de Snake Classic — '
+    + 'manifest, API, componentes UI, publicación a Steam Workshop.',
+  cleanUrls: true,
+
+  // Storybook visual difererido (R-PORTAL-7 del roadmap); los links a
+  // /storybook/* quedan como deadlinks aceptados hasta que se
+  // materialice el catalogo visual.
+  ignoreDeadLinks: [/^\/storybook\//],
+
+  themeConfig: {
+    siteTitle: 'Mods · Snake Classic',
+    nav: [
+      { text: 'Empezar', link: '/getting-started' },
+      { text: 'Manifest', link: '/manifest-format' },
+      { text: 'API', link: '/api-reference' },
+      { text: 'Publicar', link: '/publishing' },
+      { text: 'Destacados', link: '/featured' },
+      {
+        text: 'Repos',
+        items: [
+          {
+            text: 'Mod template (clonable)',
+            link: 'https://github.com/acamposruiz/mod-template-snake-classic',
+          },
+          {
+            text: 'Steam Workshop',
+            link: 'https://steamcommunity.com/app/TBD/workshop/',
+          },
+          {
+            text: 'Snake Classic — Steam',
+            link: 'https://store.steampowered.com/app/TBD/',
+          },
+        ],
+      },
+    ],
+    sidebar: [
+      {
+        text: 'Introducción',
+        items: [
+          { text: 'Bienvenida', link: '/' },
+          { text: 'Empezar a hacer mods', link: '/getting-started' },
+        ],
+      },
+      {
+        text: 'Manifest y API',
+        items: [
+          { text: 'manifest-format', link: '/manifest-format' },
+          { text: 'API reference', link: '/api-reference' },
+          { text: 'Multi-engine', link: '/multi-engine' },
+          { text: 'Targeting games', link: '/targeting-games' },
+        ],
+      },
+      {
+        text: 'Publicar y operar',
+        items: [
+          { text: 'Publishing a Workshop', link: '/publishing' },
+          { text: 'Host API changelog', link: '/host-api-changelog' },
+        ],
+      },
+      {
+        text: 'Comunidad',
+        items: [
+          { text: 'Mods destacados', link: '/featured' },
+        ],
+      },
+      {
+        text: 'UI catalog',
+        items: [
+          {
+            text: 'Storybook (UI components)',
+            link: '/storybook/index.html',
+            target: '_self',
+          },
+          { text: 'catalog.json', link: '/catalog.json' },
+        ],
+      },
+      {
+        text: 'Ejemplos',
+        items: [
+          { text: 'Hello mod', link: '/examples/hello-mod' },
+        ],
+      },
+    ],
+    footer: {
+      message: 'Mantenido por el equipo de Leteo Works.',
+      copyright:
+        '© 2026 Leteo Works. Mods third-party son propiedad de sus autores.',
+    },
+    socialLinks: [
+      {
+        icon: 'github',
+        link: 'https://github.com/acamposruiz/mod-portal-snake-classic',
+      },
+    ],
+    editLink: {
+      pattern:
+        'https://github.com/acamposruiz/mod-portal-snake-classic/edit/main/docs/:path',
+      text: 'Sugerir edición',
+    },
+  },
+});

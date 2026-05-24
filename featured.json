@@ -1,0 +1,18 @@
+{
+  "$schema": "https://leteo.github.io/mod-portal-snake-classic/featured.schema.json",
+  "$comment": "Curación manual del estudio. Editar via PR. El portal Vitepress renderiza esta lista en docs/featured.md y en la home como 'Mods destacados'. Sin política dura — la curación es libre y se documenta en operations/featured-mods-curation.md.",
+  "version": 1,
+  "modOfTheMonth": null,
+  "featured": [
+    {
+      "modId": "studio.fun-config",
+      "workshopItemId": null,
+      "title": "Fun Config",
+      "author": "Studio Leteo",
+      "description": "Mod oficial first-party. Personaliza power-ups, velocidad y progresion. Sirve de referencia viva del sistema.",
+      "tags": ["First Party", "Customization"],
+      "since": "2026-XX-XX",
+      "category": "first-party-reference"
+    }
+  ]
+}

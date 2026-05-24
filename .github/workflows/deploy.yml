@@ -1,0 +1,63 @@
+# Workflow de deploy del portal a GitHub Pages.
+#
+# Trigger: push a main → build Vitepress + Storybook → publica a la
+# branch gh-pages. La URL pública resultante es
+# https://leteo.github.io/mod-portal-snake-classic/.
+#
+# Setup pre-requisito (acción del usuario, una vez):
+#   Settings → Pages → Source: "Deploy from a branch" → gh-pages /root.
+#
+# Spec normativa:
+#   docs/coordination/mods-workshop-ecosystem-roadmap.md §W2
+
+name: Deploy portal
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Vitepress
+        run: pnpm build
+
+      # Storybook se buildea solo si el catálogo tiene stories reales.
+      # Por ahora el skeleton W2 lo omite (ver stories/README.md).
+      # - name: Build Storybook
+      #   run: pnpm build:storybook
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/.vitepress/dist
+          publish_branch: gh-pages
+          cname: ''

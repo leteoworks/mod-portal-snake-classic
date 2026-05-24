@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://leteo.github.io/mod-portal-snake-classic/featured.schema.json",
+  "title": "Featured Mods",
+  "description": "Curacion manual del estudio para mods destacados del juego. Editar via PR. El portal Vitepress renderiza esta lista.",
+  "type": "object",
+  "required": [
+    "version",
+    "modOfTheMonth",
+    "featured"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "version": {
+      "const": 1,
+      "type": "number"
+    },
+    "modOfTheMonth": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "modId del mod destacado del mes. null si no hay nominado."
+    },
+    "featured": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": [
+          "modId",
+          "title",
+          "author",
+          "description",
+          "since",
+          "category"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "modId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "workshopItemId": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Steam Workshop item ID si publicado a Steam, null para first-party references no publicados."
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "author": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "type": "string"
+            }
+          },
+          "since": {
+            "type": "string",
+            "pattern": "^\\d{4}-(\\d{2}|XX)-(\\d{2}|XX)$",
+            "description": "YYYY-MM-DD; X mask permitido (e.g. 2026-XX-XX) antes del Day 1 launch."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "first-party-reference",
+              "community",
+              "translation",
+              "seasonal"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
