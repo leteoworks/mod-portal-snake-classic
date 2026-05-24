@@ -3,7 +3,7 @@
  *
  * Base path apunta a `/mod-portal-snake-classic/` que es el path
  * default de GitHub Pages para
- * `acamposruiz.github.io/mod-portal-snake-classic/`.
+ * `leteoworks.github.io/mod-portal-snake-classic/`.
  * Si el usuario migra a dominio propio (D-PORTAL-4 reabierto), cambiar
  * `base` y `outDir` queda como deuda de la migración.
  */
@@ -50,7 +50,7 @@ export default defineConfig({
         items: [
           {
             text: 'Mod template (clonable)',
-            link: 'https://github.com/acamposruiz/mod-template-snake-classic',
+            link: 'https://github.com/leteoworks/mod-template-snake-classic',
           },
           {
             text: 'Steam Workshop',
@@ -119,12 +119,12 @@ export default defineConfig({
     socialLinks: [
       {
         icon: 'github',
-        link: 'https://github.com/acamposruiz/mod-portal-snake-classic',
+        link: 'https://github.com/leteoworks/mod-portal-snake-classic',
       },
     ],
     editLink: {
       pattern:
-        'https://github.com/acamposruiz/mod-portal-snake-classic/edit/main/docs/:path',
+        'https://github.com/leteoworks/mod-portal-snake-classic/edit/main/docs/:path',
       text: 'Sugerir edición',
     },
   },

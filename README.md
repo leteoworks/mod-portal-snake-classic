@@ -2,11 +2,11 @@
 
 Portal público de documentación para autores de mods de Snake Classic.
 
-> **Estado**: repo público en `acamposruiz/mod-portal-snake-classic`
+> **Estado**: repo público en `leteoworks/mod-portal-snake-classic`
 > (activo desde 2026-05-24). Submódulo del monorepo
-> `acamposruiz/my-game-fw-mods-main` bajo `mod-portals/snake-classic/`.
+> `leteoworks/my-game-fw-mods-main` bajo `mod-portals/snake-classic/`.
 > Decisiones D-PORTAL-1..4 en
-> [`docs/coordination/mod-portal-snake-classic-roadmap.md`](https://github.com/acamposruiz/my-game-fw-mods-main/blob/feature/mods-main/docs/coordination/mod-portal-snake-classic-roadmap.md)
+> [`docs/coordination/mod-portal-snake-classic-roadmap.md`](https://github.com/leteoworks/my-game-fw-mods-main/blob/feature/mods-main/docs/coordination/mod-portal-snake-classic-roadmap.md)
 > del monorepo.
 
 Incluye:
