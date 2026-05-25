@@ -63,12 +63,14 @@ todos los mods de `game-mods/<gameId>/` automáticamente.
 │  Repo padre: my-game-fw-mods-main                              │
 │                                                                │
 │  src/games/snake-classic/mods/                                 │
-│    ├── tunables.ts          ← declara qué se puede tunear      │
-│    ├── moddable-config.ts   ← consume familia @modules/moddable│
-│    ├── policy.ts            ← bridge único a @modules/mod-runtime
-│    └── bundled-loader.ts    ← AUTO-DESCUBRE mods via import.meta.glob
+│    ├── tunables.ts                       ← declara tunables    │
+│    ├── moddable-config.ts                ← consume @modules/moddable│
+│    ├── policy.ts                         ← único bridge a mod-runtime
+│    ├── host-adapters.ts                  ← adapters específicos snake│
+│    ├── registries.ts                     ← powerupRegistry wire│
+│    └── bundled-mods-sources.generated.ts ← AUTO-GEN imports ?raw│
 │                                                                │
-│  src/games/snake-classic/mods/bundled-mods-manifest.json       │
+│  src/games/snake-classic/mods/bundled/bundled-mods-manifest.json
 │    ← AUTOGENERADO por scripts/build-game-mods.mjs              │
 │      con sha256 + signature (solo en build:release)            │
 └────────────────────────────────────────────────────────────────┘
@@ -82,10 +84,14 @@ todos los mods de `game-mods/<gameId>/` automáticamente.
 
 1. **Una fuente de verdad por mod**: `game-mods/<gameId>/<modId>/`.
 2. **El parent NO contiene código de mod** — sólo wiring del juego
-   (`policy.ts`, `moddable-config.ts`, `bundled-loader.ts`).
-3. **Descubrimiento automático**: el `bundled-loader.ts` usa
-   `import.meta.glob` sobre el alias `@game-mods/*` — añadir un mod
-   no requiere tocar el código del juego.
+   (`policy.ts`, `moddable-config.ts`, `host-adapters.ts`,
+   `registries.ts`, `tunables.ts` + el archivo auto-generado
+   `bundled-mods-sources.generated.ts`).
+3. **Descubrimiento automático**: el script
+   `build-game-mods.mjs` recorre `game-mods/<gameId>/*/` y emite
+   `bundled-mods-sources.generated.ts` con imports `?raw` estáticos
+   de cada `dist/mod.js`. Añadir un mod no requiere tocar el código
+   del juego — solo regenerar el archivo.
 4. **Manifest autogenerado**: `bundled-mods-manifest.json` no se
    edita a mano; lo escribe `scripts/build-game-mods.mjs` con
    sha256 fresco en cada build.
@@ -96,9 +102,20 @@ todos los mods de `game-mods/<gameId>/` automáticamente.
    `main`/`dev` (§2.5 audit 2026-05-24).
 6. **Single source de la lista bundled**: el script emite
    `BUNDLED_MOD_IDS` en `bundled-mods-sources.generated.ts`; el
-   `policy.ts` del juego importa de ahi en lugar de re-declarar la
-   lista (§2.4 audit 2026-05-24). Imposible que el orden, los ids o
-   el conteo diverjan entre el manifest y el `defineModPolicy`.
+   `policy.ts` del juego importa de ahí (vía
+   `createGameModSources` del framework) en lugar de re-declarar la
+   lista. Imposible que el orden, los ids o el conteo diverjan entre
+   el manifest y el `defineModPolicy`.
+7. **Pattern composer del framework**: tras audit #2 §3 y audit #3,
+   el `policy.ts` consume helpers del framework
+   (`createGameAnalyticsPipeline`, `createGameBridgeDepsFactory`,
+   `createGameModSources`, `createModHttpClient`,
+   `installWorkshopSubscriptionPoll`) en vez de re-implementar la
+   lógica por juego. El juego solo aporta los adapters propios
+   (`host-adapters.ts`) + la `moddable-config.ts` declarativa.
+
+> Pipeline normativo completo de `game-mods/` → bundle:
+> [`../moddable-games/bundled-mods-pipeline.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/moddable-games/bundled-mods-pipeline.md).
 
 ---
 
@@ -258,7 +275,7 @@ node scripts/dev-mod.mjs snake-classic studio.gameplay-tuner
 
   # editas src/index.ts...
 [esbuild]  build OK (87ms)
-[quasar]   hmr update src/games/snake-classic/mods/bundled-loader.ts
+[quasar]   hmr update src/games/snake-classic/mods/bundled-mods-sources.generated.ts
 [mod-runtime] mod studio.gameplay-tuner re-evaluated
 ```
 
@@ -315,9 +332,10 @@ Lo que ocurre, en orden:
 
 2. quasar build --mode=electron:
    ├── Webpack resuelve alias @game-mods/* → game-mods/*
-   ├── bundled-loader.ts ejecuta import.meta.glob('@game-mods/snake-classic/*/dist/mod.js')
-   │   → webpack inlinea cada mod.js como ?raw en el bundle del juego
-   ├── Tree-shaking elimina lo no referenciado
+   ├── bundled-mods-sources.generated.ts contiene imports ?raw
+   │   estáticos del paso 1 → webpack inlinea cada mod.js como
+   │   string ?raw en el bundle del juego
+   ├── Tree-shaking elimina lo no referenciado (mod-free build)
    └── electron-builder empaqueta el bundle + assets
 
 3. Output: dist/electron/snake-classic-1.x.x-{mac,win,linux}.{dmg,exe,AppImage}
@@ -389,16 +407,19 @@ de claves activas + las archivadas en una ventana de gracia
 | Subrepo `game-mods/` (git, submódulo en parent) | ✅ Activo | Remote: `leteoworks/my-game-fw-mods` (privado). |
 | Familia `@modules/moddable/*` (13 submódulos) | ✅ Completa | Sprints 1-5 mergeados (`91285015`). |
 | Primer mod `studio.gameplay-tuner` v0.1.0 | ✅ Commiteado | En `game-mods/snake-classic/`. |
-| Snake `tunables.ts` + `moddable-config.ts` | ✅ Cableado | 14 tests verdes. |
-| Alias webpack `@game-mods/*` | ✅ Operativo | En `quasar.config.js`, `tsconfig.json`, `jest.config.cjs`. Commit `bcda79f7`. |
-| `bundled-loader.ts` consume `bundled-mods-sources.generated.ts` | ✅ Refactorizado | Imports `?raw` estáticos generados por el script. Commit `bcda79f7`. |
-| `scripts/mods/build-game-mods.mjs` | ✅ Operativo | Auto-discover + sha256 + manifest autogen + firma condicional. Commit `bcda79f7`. |
-| `scripts/mods/dev-mod.mjs` (+ `pnpm dev:mod`) | ✅ Operativo | Concurrently esbuild watch + Quasar dev. Commit `bcda79f7`. |
-| Migración de `studio.fun-config` a `game-mods/` | ✅ Migrado | Carpeta legacy eliminada del parent; contenido en subrepo SHA `6e63cab`. |
-| Hook `build:game` → `build-game-mods.mjs` | ✅ Operativo | Pre-build hook automático en `scripts/game-standalone.mjs`. |
-| Policy.ts delega en `moddableGame.policy` | ✅ Migrado | `surfaces.gameSpecific.tunables` añadido + host fns auto-registradas en `setupSnakeModRuntime`. |
+| Snake `tunables.ts` + `moddable-config.ts` | ✅ Cableado | Tests verdes. `powerupRegistry` añadido como caso canónico de `@modules/moddable/registry` (audit #2 §B). |
+| Alias webpack `@game-mods/*` | ✅ Operativo | En `quasar.config.js`, `tsconfig.json`, `jest.config.cjs`. |
+| `bundled-mods-sources.generated.ts` con imports `?raw` estáticos | ✅ Operativo | Auto-generado por `build-game-mods.mjs`. Reemplaza al antiguo `bundled-loader.ts` con `import.meta.glob` (eliminado en audit #3 §3.5). |
+| `scripts/mods/build-game-mods.mjs` | ✅ Operativo | Auto-discover + sha256 + manifest autogen + firma condicional + `BUNDLED_MOD_IDS` con formato `<modId>@<semver>` (audit #2 §2.4). |
+| `scripts/mods/dev-mod.mjs` (+ `pnpm dev:mod`) | ✅ Operativo | Concurrently esbuild watch + Quasar dev. |
+| Migración de `studio.fun-config` a `game-mods/` | ✅ Migrado | Carpeta legacy eliminada del parent. |
+| Hook `build:game` → `build-game-mods.mjs` | ✅ Operativo | Pre-build hook automático en `scripts/game-standalone.mjs`. También cabla `check-bundled-mod-ids-format.mjs` (audit #3). |
+| Policy.ts delega en `moddableGame.policy` | ✅ Migrado | `surfaces.gameSpecific.tunables` añadido + host fns auto-registradas. ESLint regla `framework/policy-must-delegate-to-composer` lo enforce (audit #3 §O). |
+| Composer pattern del framework | ✅ Operativo | `createGameAnalyticsPipeline`, `createGameBridgeDepsFactory`, `createGameModSources`, `createModHttpClient`, `installWorkshopSubscriptionPoll`, `processRemoteConfigKillSwitch`, `wireModdableGameToRuntime` viven en `@modules/mod-runtime/setup`. Solo `policy.ts` los importa (audit #2 §3 + audit #3). |
+| Adapters específicos por juego | ✅ Separados | `src/games/<id>/mods/host-adapters.ts` aporta los singletons + adapters del juego que el composer cablea. |
 | Codemod gameplay → `tunable.get()` (3 tunables MVP) | ✅ Aplicado | `maxLives`, `initialSpeedTickMs`, `pointsPerFood` consumen `.get()` en sus call-sites. |
-| Soporte i18nValidator integrado al CI | ✅ Operativo | `scripts/mods/validate-i18n.ts` + `pnpm lint:mods-i18n`. Hook automático en `scripts/game-standalone.mjs` tras `build-game-mods.mjs`. Falla con exit 1 si una `i18nKey` declarada no existe o está vacía en `en`/`es`. |
+| Soporte i18nValidator integrado al CI | ✅ Operativo | `scripts/mods/validate-i18n.ts` + `pnpm lint:mods-i18n`. Hook automático en `scripts/game-standalone.mjs` tras `build-game-mods.mjs`. Falla con exit 1 si una `i18nKey` declarada no existe o está vacía en `en`/`es`. `I18nValidatorOptions.localesPath` configurable (audit #3 §2.6). |
+| Guards CI moddable en `husky pre-push` | ✅ Operativo | Pre-push corre 4 guards (audit #3 §2.7): `check-bundled-mods-signed`, `check-bundled-mod-ids-format`, `validate-moddable-configs`, `lint:mods-i18n`. |
 
 El workflow funciona end-to-end. **Familia moddable + subrepo
 `game-mods/` + dev/build pipeline al 100 %.** Iterando un mod desde
@@ -470,12 +491,20 @@ GAMEFW_MODS_SKIP_SIGN=1 pnpm build:game snake-classic --mode=electron
 3. Mira `host.log` y la consola de devtools — el runtime loguea
    rechazos con razón (`MOD_REJECTED_*`).
 
-### "El glob no descubre mi mod nuevo"
+### "El archivo `bundled-mods-sources.generated.ts` no incluye mi mod nuevo"
 
-`import.meta.glob` en webpack es lazy en HMR. Tras crear una carpeta
-NUEVA de mod, suele requerir restart del Quasar dev (Ctrl-C +
-`pnpm dev:game ...`). Edits dentro de carpetas existentes sí refrescan
-en caliente.
+El script `build-game-mods.mjs` se ejecuta como pre-hook de
+`pnpm dev:game` y `pnpm build:game`. Si añadiste un mod nuevo
+mientras Quasar dev estaba corriendo, regenera manualmente:
+
+```bash
+pnpm exec node scripts/mods/build-game-mods.mjs --game=snake-classic
+```
+
+Y reinicia Quasar dev (Ctrl-C + `pnpm dev:mod ...`). Edits dentro
+de carpetas existentes de mods sí refrescan en caliente via
+esbuild watch — solo la creación de un mod NUEVO requiere
+regenerar el `.generated.ts`.
 
 ### "Conflicto de submódulo: SHA del parent apunta a commit inexistente"
 
@@ -528,6 +557,9 @@ da los tipos del HostBridge para mockear desde tests.
 
 ## Cross-links
 
+- [`../moddable-games/bundled-mods-pipeline.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/moddable-games/bundled-mods-pipeline.md)
+  — pipeline normativo `game-mods/` → bundle del juego (auto-gen,
+  guards CI, single source).
 - [game-mods/README.md](../../../game-mods/README.md) — el subrepo
 - [docs/mods/README.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/README.md) — índice maestro del sistema de mods
 - [docs/games/snake-classic/mods/gameplay-tuner-roadmap.md](../../games/snake-classic/mods/gameplay-tuner-roadmap.md)
