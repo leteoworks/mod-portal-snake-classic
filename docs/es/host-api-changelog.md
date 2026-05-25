@@ -5,108 +5,198 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Host API changelog
+# Host API — snake-classic v1.0.90
 
-Versionado SemVer del `HostBridge` que ven los mods de Snake Classic.
+> Host API version: `1.0.0`
+> Auto-generado por `@modules/moddable/changelog-gen`. NO editar a mano.
 
-> **Contrato**: el manifest de un mod declara `requires.hostApi: '^1.0.0'`.
-> El loader rechaza mods cuya restricción no matchee la versión actual
-> del juego (estado `incompatible`, mod no se activa).
+> Auto-generado por scripts/mods/gen-moddable-artifacts.mjs.
+> Regenerar con: pnpm mods:generate-host-api-changelog snake-classic
 
----
+## Engines aceptados
 
-## v1.0.0 — Lanzamiento (2026-XX-XX)
+El manifest del mod (`mod.json#engine.preferred` y `engine.fallbacks`) debe declarar al menos uno de estos motores; cualquier otro produce rechazo `incompatible` al cargar.
 
-Superficie inicial expuesta al modder:
+- `isolated-vm`
+- `quickjs-declarative-ui`
 
-- `host.callHostFn(name, args)` — invocar funciones host registradas
-  por el juego para mods (`togglePowerUp`, `setPowerUpSpawnChance`,
-  `setSpeedBase`, `setSpeedProgression`).
-- `host.subscribeEvent(name, cb)` — suscribir a eventos del juego
-  listados en `policy.surfaces.events.subscribe`. Snake Classic
-  expone: `GAME_STARTED`, `POWERUP_SPAWNED`, `GAME_OVER`,
-  `SCORE_INCREASED`, `SNAKE_DIED`.
-- `host.registerHook(name, fn)` — registrar hooks del lifecycle del
-  mod (`onActivate`, `onDeactivate`).
-- `host.state.read(path)` — lectura **read-only** del state del juego
-  por path canónico. Snake Classic expone las siguientes 7 paths
-  (convención `SCREAMING_SNAKE_CASE__DOUBLE_UNDERSCORE` del state
-  store del juego):
-  - `GAME_DATA__RUN__SCORE__CURRENT` — score actual de la partida.
-  - `GAME_DATA__RUN__SCORE__MULTIPLIER` — multiplicador activo.
-  - `GAME_DATA__RUN__SPEED__LEVEL` — nivel de velocidad.
-  - `GAME_DATA__RUN__SNAKE__LENGTH` — longitud de la serpiente.
-  - `GAME_DATA__RUN__POWERUP__ACTIVE` — power-up activo (o null).
-  - `GAME_DATA__RUN__POWERUP__ACTIVE_VARIANT` — variante del activo.
-  - `GAME_DATA__APP_SYNC__PROGRESS__HIGH_SCORE` — high score persistido.
-- `host.storage.{get,set,delete,keys}(...)` — storage aislado por mod,
-  quota declarada en `permissions.storage.quotaKb`.
-- `host.i18n.{register,t}(...)` — traducciones del mod (si declara
-  `permissions.i18n`).
-- `host.log.{debug,info,warn,error}(...)` — logger (no afecta al
-  bus de error del juego).
-- `host.analytics.track(name, props)` — eventos custom declarados en
-  `mod.json#analytics.events`.
-- `host.registerSettingsTab(descriptor)` — tabs declarativos en
-  `Settings → Mods → <tu tab>`. Catálogo de componentes UI en
-  [/storybook/](/storybook/).
-- `host.registerPowerUp(def)` — registrar power-ups nuevos (si
-  declaras `permissions.powerups.actions: ['register']`).
-- `host.registerAsset(kind, id, source)` — sustituir imágenes /
-  audio / fonts (si declaras `permissions.assets`).
+## Trust tiers
 
-### Eventos `mod.framework.*` emitidos por el runtime
-
-20 eventos canónicos automáticos (no participación del modder).
-Listado completo en
-[framework-events.ts](https://github.com/leteoworks/my-game-fw/blob/main/src/modules/mod-runtime/telemetry/framework-events.ts).
-Resumen:
-
-- **Discovery + lifecycle** (8): `discovered`, `validated_ok`,
-  `upgrade`, `removed`, `activated`, `deactivated`,
-  `permission_prompt_shown`, `permission_decision`, `session_summary`.
-- **Engagement** (2): `engagement_tick`, `first_use_ever`.
-- **Errores + límites** (3): `fault_summary`, `quota_hit`,
-  `api_violation`.
-- **Performance** (7): `perf.frame_impact`, `perf.cpu_budget`,
-  `perf.memory_high_water`, `perf.hook_slow`,
-  `perf.long_task_attributed`, `perf.budget_exceeded`,
-  `perf.throttled`.
-
-### NO disponible en v1.0.0
-
-- `fetch` o `XMLHttpRequest` directos — el sandbox los bloquea.
-- `window`, `document`, `localStorage`.
-- `host.state.write(...)` — Snake Classic v1.0.0 **solo expone
-  lectura** (`state.read`). Si necesitas modificar el state, hazlo
-  vía eventos (`host.subscribeEvent` + `host.callHostFn` que el juego
-  expone como contrato).
-- Networking arbitrario — `host.http.request` existe pero solo si
-  declaras `permissions.network` y el host está en allowlist.
-- Backend clients (leaderboards, save sync) — gated por
-  `permissions.backend-client` (no expuesto en Snake Classic v1.0.0).
-
----
-
-## Política de versionado
-
-| Cambio | SemVer bump |
+| Tier | Decision |
 |---|---|
-| Añadir helper nuevo a `host.*` | MINOR |
-| Añadir surface declarada en `policy.ts` | MINOR (los mods existentes no piden, no se rompen) |
-| Cambiar shape de un helper existente | MAJOR (rompe mods que lo usan) |
-| Eliminar un helper | MAJOR |
-| Añadir error code nuevo | MINOR |
-| Cambiar error code existente | MAJOR |
-| Cambios solo en el manifest del juego (no expuestos al mod) | sin bump |
+| `unsigned` | allow-with-prompt |
+| `workshopVerified` | allow |
+| `studioSigned` | allow-elevated |
 
-Cualquier MAJOR bump requiere documentar la migración en esta
-página antes de mergear el cambio al runtime.
+## Resource limits
 
----
+| Limite | Valor | Notas |
+|---|---|---|
+| `memoryMb` | 32 | OOM aborta el mod, no crashea el juego. |
+| `hookTimeoutMs` | 100 | Cada hook (`onActivate`, `onEvent:*`, `onAction:*`, etc.) tiene este timeout. |
+| `instructionsPerHook` | 1,000,000 | QuickJS interrupt handler. Hard cap por invocacion. |
+| `storageQuotaKb` | 256 | Cuota por mod en `host.storage`. Auto-rejected si excede. |
+| `maxActiveMods` | 10 | Mods activos simultaneos. Activar uno mas exige desactivar otro. |
+| `maxLoadTimeMs` | 2000 | Tiempo maximo del eval del entry source del mod. |
 
-## Cross-links
+### Performance budgets
 
-- [api-reference](/es/api-reference)
-- [manifest-format](/es/manifest-format)
-- [Filosofía del sistema (monorepo)](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/philosophy.md)
+Medidos automaticamente por el runtime y gatillan throttling adaptativo antes de la cuarentena. Ver `docs/mods/architecture/mod-analytics.md` § Performance impact tracking.
+
+| Limite | Valor | Notas |
+|---|---|---|
+| `cpuMsPerSecond` | 50 | CPU total que un mod puede consumir por segundo. Excederlo emite `perf.cpu_budget` y throttle. |
+| `framePenaltyMaxMs` | 4 | Penalty maximo de frame atribuible al mod (`perf.frame_impact`). |
+| `slowHookThresholdMs` | 50 | Por encima de este umbral, un hook se marca slow y cuenta para `throttleAfterSlowCount`. |
+| `throttleAfterSlowCount` | 5 | Slow hooks consecutivos antes de aplicar throttle. |
+
+## Politica operacional (runtime)
+
+| Opcion | Valor | Notas |
+|---|---|---|
+| `workshopEnabled` | true | Discovery desde Steam Workshop. |
+| `localSideloadEnabled` | false | Carga de mods desde carpeta local del usuario. Solo dev builds en release. |
+| `killSwitchPollMs` | 900,000 (≈ 15 min) | Polling del kill-switch remoto. |
+| `loadFaultPolicy` | `quarantine` | Politica ante fallo de carga (no se reintenta vs. retry-once). |
+
+## Eventos
+
+**Suscribibles**:
+- `SCORE_CHANGED`
+- `POWERUP_PICKED`
+- `POWERUP_SPAWNED`
+- `GAME_STARTED`
+- `GAME_OVER`
+- `LEVEL_UP`
+
+**Dispatchables**:
+- `MOD_*`
+
+## State paths
+
+**Lectura**:
+- `GAME_DATA__RUN__SCORE__CURRENT`
+- `GAME_DATA__RUN__SCORE__MULTIPLIER`
+- `GAME_DATA__RUN__SPEED__LEVEL`
+- `GAME_DATA__RUN__SNAKE__LENGTH`
+- `GAME_DATA__RUN__POWERUP__ACTIVE`
+- `GAME_DATA__RUN__POWERUP__ACTIVE_VARIANT`
+- `GAME_DATA__APP_SYNC__PROGRESS__HIGH_SCORE`
+
+**Escritura**: vacio — mods NO escriben estado directamente. Para mutar, dispatchar un evento `MOD_*_REQUESTED` que el director del juego decide aplicar.
+
+## Tunables
+
+| Name | Type | Default | Range / Enum | Tier | Aplica |
+|---|---|---|---|---|---|
+| `maxLives` | integer | `25` | [1, 50] | — | next-game |
+| `initialSpeedTickMs` | integer | `200` | [80, 500] | — | next-game |
+| `pointsPerFood` | integer | `10` | [1, 100] | — | immediate |
+| `powerupSpawnInterval` | integer | `3` | [1, 10] | — | immediate |
+| `powerupSpeedBoostEnabled` | boolean | `true` | — | — | next-game |
+| `powerupInvincibilityEnabled` | boolean | `true` | — | — | next-game |
+| `powerupDoublePointsEnabled` | boolean | `true` | — | — | next-game |
+| `powerupMagnetEnabled` | boolean | `true` | — | — | next-game |
+| `powerupShrinkEnabled` | boolean | `true` | — | — | next-game |
+| `powerupGhostEnabled` | boolean | `true` | — | — | next-game |
+| `powerupGoldenAppleEnabled` | boolean | `true` | — | — | next-game |
+| `powerupDemolitionEnabled` | boolean | `true` | — | — | next-game |
+| `powerupEarthquakeEnabled` | boolean | `true` | — | — | next-game |
+| `powerupBombPickupEnabled` | boolean | `true` | — | — | next-game |
+| `powerupBrickBlastEnabled` | boolean | `true` | — | — | next-game |
+| `powerupExtraLifeEnabled` | boolean | `true` | — | — | next-game |
+| `powerupSummonSnakeEnabled` | boolean | `true` | — | — | next-game |
+| `powerupBlindfoldEnabled` | boolean | `true` | — | — | next-game |
+| `powerupFragileWallEnabled` | boolean | `true` | — | — | next-game |
+| `powerupBrickRevivalEnabled` | boolean | `true` | — | — | next-game |
+| `powerupPortalEnabled` | boolean | `true` | — | — | next-game |
+| `powerupDemonEnabled` | boolean | `true` | — | — | next-game |
+| `powerupBaseballBatEnabled` | boolean | `true` | — | — | next-game |
+| `powerupDoubleLengthEnabled` | boolean | `true` | — | — | next-game |
+| `powerupRainbowHeartEnabled` | boolean | `true` | — | — | next-game |
+| `powerupTimeTravelEnabled` | boolean | `true` | — | — | next-game |
+
+## Power-ups
+
+| Capability | Granted |
+|---|---|
+| `toggle` | true |
+| `tuneProbabilities` | true |
+| `tuneEffects` | false |
+| `register` | false |
+
+## GameSpecific surfaces
+
+### `speedCurve`
+
+| Action | Granted |
+|---|---|
+| `setBase` | true |
+| `setProgression` | true |
+
+## Settings UI
+
+- `addTabs`: true
+- `maxTabs`: 3
+
+## Storage
+
+- `perModQuotaKb`: 256
+
+## i18n
+
+- `namespaces`: `mod-*`
+
+## Entitlements
+
+**Lectura permitida** (`host.entitlements.getActiveDlcs()`):
+- `snake-classic.endless-plus`
+
+## Network (`host.http.request`)
+
+| Campo | Valor |
+|---|---|
+| `enabled` | true |
+| `methods` | `GET` |
+| `allowedHosts` | `github.com` |
+| `forbidPrivateHosts` | true |
+| `requireTls` | true |
+| `maxRequestKb` | 16 |
+| `maxResponseKb` | 64 |
+| `maxRequestsPerMinute` | 10 |
+| `timeoutMs` | 5000 |
+| `allowedRequestHeaders` | `Accept`, `Content-Type` |
+| `allowedResponseHeaders` | `Content-Type` |
+| `forbidCredentials` | true |
+| `followRedirects` | `false` |
+
+### Overrides por trust tier
+
+| Tier | Override |
+|---|---|
+| `unsigned` | allowedHosts: [∅] |
+| `workshopVerified` | maxRequestsPerMinute: `10` |
+| `studioSigned` | maxRequestsPerMinute: `30` |
+
+## Analytics (custom events)
+
+| Campo | Valor |
+|---|---|
+| `customEventsEnabled` | true |
+| `maxEventsPerMinute` | 30 |
+| `maxEventsDeclared` | 10 |
+
+## Registries
+
+### powerups
+
+- Items declarados: 22
+- Items enabled por defecto: 22
+
+## Host functions
+
+| Name | Surface | Action | Doc |
+|---|---|---|---|
+| `gameConfigSet` | tunables | set | Aplica un override a un tunable del juego. Validado por rango/tipo/enum y por trust tier del mod. |
+| `gameConfigReset` | tunables | reset | Elimina el override de un tunable. La siguiente lectura devuelve el default. |
+| `gameConfigSnapshot` | tunables | snapshot | Devuelve el valor actual de cada tunable (override o default). Read-only. §3.4 audit: solo expone tunables con `requiresTier` que el caller cumple — info-leak fix. |
