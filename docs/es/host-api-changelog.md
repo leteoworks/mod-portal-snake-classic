@@ -186,6 +186,14 @@ Medidos automaticamente por el runtime y gatillan throttling adaptativo antes de
 | `maxEventsPerMinute` | 30 |
 | `maxEventsDeclared` | 10 |
 
+## Bundled mods (pre-instalados)
+
+Mods first-party que viajan dentro del bundle del juego. El jugador puede activarlos sin descargar desde Workshop.
+
+**Disponibles (no enabled por defecto)**:
+- `studio.fun-config@1.0.0`
+- `studio.gameplay-tuner@0.1.0`
+
 ## Registries
 
 ### powerups
