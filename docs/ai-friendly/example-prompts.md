@@ -117,7 +117,7 @@ all with the same shape. Refactor them to:
    the array must carry `i18nKey` separate from `fallback`.
 
 Reference pattern: studio.fun-config does exactly this — look at
-game-mods/snake-classic/studio.fun-config/src/settings-tab.ts
+submodules/game-mods/snake-classic/studio.fun-config/src/settings-tab.ts
 if you need a reference.
 ```
 
@@ -251,7 +251,7 @@ Operational details:
   gameConfigSet — DOES NOT write storage (last-write-wins
   anti-pattern, see CLAUDE.md).
 
-Take game-mods/snake-classic/studio.gameplay-tuner/ as reference
+Take submodules/game-mods/snake-classic/studio.gameplay-tuner/ as reference
 if you need to see the pattern in production.
 ```
 
@@ -344,7 +344,7 @@ Details:
   applied".
 
 Reference: studio.gameplay-tuner uses this exact pattern — look
-at game-mods/snake-classic/studio.gameplay-tuner/src/presets.ts
+at submodules/game-mods/snake-classic/studio.gameplay-tuner/src/presets.ts
 and src/apply-config.ts if you need the shape.
 ```
 

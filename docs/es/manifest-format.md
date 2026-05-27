@@ -80,7 +80,8 @@ juego.
 
 ### `engine.preferred` y `engine.fallbacks`
 
-Motor que tu mod necesita. Lo elige según lo que hace tu mod:
+Lista de motores que tu mod ACEPTA — el conjunto de runtimes en
+los que tu código funciona. Categorías típicas:
 
 - Si tu mod aporta tabs de settings (formularios) → `quickjs-declarative-ui`.
 - Si tu mod es lógica pura (eventos, transformaciones) →
@@ -90,9 +91,18 @@ Motor que tu mod necesita. Lo elige según lo que hace tu mod:
 
 Lista de motores: [../engines/](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/engines/).
 
-`fallbacks` permite que tu mod funcione si el motor preferido no está
-disponible. Pon variantes razonables; lista vacía es válida pero
-restrictivo.
+`fallbacks` añade variantes a la lista de aceptados; lista vacía es
+válida pero restrictiva.
+
+**Importante — release seguridad 2026-05 (F02)**: el ORDEN de
+selección lo decide la policy del juego, NO tu manifest. El juego
+itera sus engines preferidos y elige el primero que tu manifest
+acepte. `preferred` ya NO garantiza que el juego use ese motor;
+solo declara "es válido para mí".
+
+Implicación práctica: si tu código tiene branches específicos por
+motor, usa `host.api.engineId` runtime (real post-fallback) para
+ramificar, no asumas que `preferred` es lo que recibiste.
 
 ### `requires.hostApi`
 
@@ -230,6 +240,32 @@ mods con permisos elevados), ver
 | "engine.preferred not in catalog" | Typo o motor inexistente |
 | "entry file > 2MiB" | Bundle demasiado grande; revisa qué metiste |
 | "manifestVersion unsupported" | Usa `1` mientras no se anuncie v2 |
+| "Unrecognized key(s) in object" | **F19 (2026-05)**: schemas ahora `.strict()`. Tienes un typo en un field name (`verison`, `metdata`) o un field extra no soportado. Compara contra el esqueleto al inicio del doc. |
+
+---
+
+## Cambio de seguridad 2026-05 — actions específicos en permissions
+
+Cada permiso que declare `actions[]` ahora se enforce por host fn
+individual. Antes el permiso top-level era suficiente; ahora el
+framework verifica el `action` concreto antes de invocar la host fn.
+
+Síntoma de mod afectado:
+
+```
+{ ok: false, error: { code: 'PERMISSION_DENIED', message:
+  "host fn 'togglePowerUp' requiere granted.gameSpecific.powerups.toggle
+   que el manifest no declaró." }}
+```
+
+Fix: añade el `action` al `actions[]` correspondiente. El error
+te dice exactamente cuál falta. La documentación de cada juego
+(`docs/games/<id>/host-api-changelog.md`) lista qué actions
+necesita cada host fn — consúltala antes de declarar permisos.
+
+Mod legítimo NO afectado si ya declaraba los actions que usa.
+Solo mods que usaban host fns sin haber declarado el action
+exacto recibirán `PERMISSION_DENIED`.
 
 ---
 

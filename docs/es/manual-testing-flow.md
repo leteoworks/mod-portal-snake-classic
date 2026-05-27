@@ -67,9 +67,9 @@ Lo que necesitas tener listo antes de arrancar el flujo:
    git submodule update --init --recursive
    ```
 2. **pnpm install** ya ejecutado en el repo padre.
-3. **`game-mods/snake-classic/studio.gameplay-tuner/`** presente con
+3. **`submodules/game-mods/snake-classic/studio.gameplay-tuner/`** presente con
    `mod.json` + `src/`. Esto se cumple si tu copia del subrepo
-   `game-mods/` está a HEAD `6e63cab` o posterior.
+   `submodules/game-mods/` está a HEAD `6e63cab` o posterior.
 4. **Browser moderno** abierto en `http://localhost:9000` (Chrome,
    Firefox, Safari). DevTools recomendados para ver logs del
    sandbox.
@@ -101,7 +101,7 @@ GAMEFW_MODS_BUNDLED_ONLY=1 pnpm dev:mod snake-classic studio.gameplay-tuner
 [dev:game]                    READY  Quasar dev server running at http://localhost:9000
 ```
 
-Si ves `[build-game-mods] sin mods en game-mods/snake-classic/`, el
+Si ves `[build-game-mods] sin mods en submodules/game-mods/snake-classic/`, el
 subrepo no está inicializado — corre `git submodule update --init`.
 
 ### Paso 2 — Abrir el juego
@@ -221,7 +221,7 @@ ahora compara contra `maxLives.get()` en vez de la constante.
 Sin salir del navegador, abre en tu editor:
 
 ```
-game-mods/snake-classic/studio.gameplay-tuner/src/index.ts
+submodules/game-mods/snake-classic/studio.gameplay-tuner/src/index.ts
 ```
 
 Añade una línea al final:
@@ -368,14 +368,14 @@ del nivel hasta que el blueprint también consume `tunable.get()`
 |---|---|---|
 | Env var ausente | `process.env.GAMEFW_MODS_BUNDLED_ONLY` en DevTools console | Relanzar con `GAMEFW_MODS_BUNDLED_ONLY=1 ...` |
 | ModRuntime bootstrap falló | Buscar `mod.bootstrap.*` signals en consola | Revisar config remota, policy + entitlements |
-| Submódulo `game-mods/` vacío | `ls game-mods/snake-classic/` | `git submodule update --init --recursive` |
+| Submódulo `submodules/game-mods/` vacío | `ls submodules/game-mods/snake-classic/` | `git submodule update --init --recursive` |
 | `bundled-mods-sources.generated.ts` desactualizado | Ver si tiene los mods esperados | Re-run `pnpm build:game-mods --game=snake-classic` |
 
 ### "El mod aparece pero el toggle no hace nada"
 
 | Causa | Fix |
 |---|---|
-| Mod's `dist/mod.js` corrupto o vacío | Re-run `pnpm --filter ./game-mods/snake-classic/studio.gameplay-tuner build` |
+| Mod's `dist/mod.js` corrupto o vacío | Re-run `pnpm --filter ./submodules/game-mods/snake-classic/studio.gameplay-tuner build` |
 | `sha256` del manifest no matchea el bundle | Re-ejecutar `pnpm build:game-mods` para regenerar manifest |
 | Trust tier rechazo (poco probable en dev) | Ver signal `mod.trust.*` en consola |
 
@@ -410,7 +410,7 @@ Comprobaciones rápidas:
 ps aux | grep esbuild | grep gameplay-tuner
 
 # 2. dist/mod.js se actualiza al guardar?
-ls -la game-mods/snake-classic/studio.gameplay-tuner/dist/mod.js
+ls -la submodules/game-mods/snake-classic/studio.gameplay-tuner/dist/mod.js
 # editar src/ → re-listar → debería cambiar mtime
 ```
 
@@ -606,9 +606,9 @@ Doc en
 first-party?
 
 **Respuesta canónica**: en el subrepo
-`game-mods/<gameId>/<modId>/e2e/*.spec.ts`. La factory
+`submodules/game-mods/<gameId>/<modId>/e2e/*.spec.ts`. La factory
 `createGamePlaywrightConfig` del juego acepta `additionalTestMatch`
-para incluir el glob `game-mods/<gameId>/*/e2e/**/*.spec.{ts,...}`,
+para incluir el glob `submodules/game-mods/<gameId>/*/e2e/**/*.spec.{ts,...}`,
 así CI del juego corre juego + mods con un solo comando. Los
 helpers (`activateMod`, `setModBinding`, etc.) viven en
 `@modules/testing-e2e/mods` — reutilizables por cualquier juego
@@ -632,5 +632,5 @@ mod-compatible.
   — política de firma Ed25519 + trust tier filter.
 - [`docs/mods/operations/incident-response.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/operations/incident-response.md)
   — playbook ante incidentes.
-- [`game-mods/snake-classic/studio.gameplay-tuner/README.md`](../../../game-mods/snake-classic/studio.gameplay-tuner/README.md)
+- [`submodules/game-mods/snake-classic/studio.gameplay-tuner/README.md`](../../../submodules/game-mods/snake-classic/studio.gameplay-tuner/README.md)
   — el mod canónico que usa este flujo como referencia.

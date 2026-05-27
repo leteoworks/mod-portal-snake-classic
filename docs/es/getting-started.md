@@ -23,7 +23,7 @@ pnpm install
 # Edita mod.json (id, metadata) + src/index.ts y arranca: pnpm watch
 ```
 
-Ver [`scaffolds/mod-template-snake-classic/README.md`](../../../scaffolds/mod-template-snake-classic/README.md)
+Ver [`scaffolds/submodules/mod-template-snake-classic/README.md`](../../../scaffolds/submodules/mod-template-snake-classic/README.md)
 para detalles.
 
 **Opción B — desde cero**:

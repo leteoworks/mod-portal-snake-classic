@@ -9,7 +9,7 @@
 
 Table of common problems when writing or publishing mods, with
 likely cause and fix. If your problem isn't here, open an issue
-at the [template repo](https://github.com/leteoworks/mod-template-snake-classic/issues)
+at the [template repo](https://github.com/leteoworks/submodules/mod-template-snake-classic/issues)
 with the exact symptom.
 
 ---

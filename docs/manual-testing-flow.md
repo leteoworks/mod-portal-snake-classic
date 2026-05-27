@@ -67,8 +67,8 @@ What you need ready before starting the flow:
    git submodule update --init --recursive
    ```
 2. **pnpm install** already run in the parent repo.
-3. **`game-mods/snake-classic/studio.gameplay-tuner/`** present
-   with `mod.json` + `src/`. True if your `game-mods/` subrepo
+3. **`submodules/game-mods/snake-classic/studio.gameplay-tuner/`** present
+   with `mod.json` + `src/`. True if your `submodules/game-mods/` subrepo
    copy is at HEAD `6e63cab` or later.
 4. **Modern browser** open at `http://localhost:9000` (Chrome,
    Firefox, Safari). DevTools recommended to see sandbox logs.
@@ -100,7 +100,7 @@ GAMEFW_MODS_BUNDLED_ONLY=1 pnpm dev:mod snake-classic studio.gameplay-tuner
 [dev:game]                    READY  Quasar dev server running at http://localhost:9000
 ```
 
-If you see `[build-game-mods] no mods in game-mods/snake-classic/`,
+If you see `[build-game-mods] no mods in submodules/game-mods/snake-classic/`,
 the subrepo isn't initialized — run `git submodule update --init`.
 
 ### Step 2 — Open the game

@@ -29,6 +29,10 @@ has escrito un mod, empieza por [`tutorial/`](tutorial/01-hello-mod.md).
 8. [Cargar un icono custom (icon + screenshots para Workshop)](#8)
 9. [Coordinar UI binding con hook sin race](#9)
 10. [Custom analytics event declarado + tracked](#10)
+11. [Mod robusto: detectar límites del framework y degradar bien](#11)
+12. [Backoff exponencial cuando el host rate-limita tu mod](#12)
+13. [Auto-pausa al activarse el sampler de F-15](#13)
+14. [Self-check al setup: verifica qué se aceptó antes de seguir](#14)
 
 ---
 
@@ -71,6 +75,15 @@ host.subscribeEvent('GAME_STARTED', async () => {
 **Por qué funciona**: el prefijo `tunables.` en el binding
 conecta automáticamente la UI al juego vía `gameConfigSet`. El hook
 extra es solo defensivo para reinicios del juego.
+
+> ⚠ **Actions específicos** (release seguridad 2026-05). Si
+> usas `host.callHostFn('gameConfigSet', ...)` SIN declarar
+> `actions: ['set']` en el permiso `game-specific.tunables`,
+> recibes `PERMISSION_DENIED` con mensaje
+> `"requiere granted.gameSpecific.tunables.set"`. Cada host fn
+> con surface enforce su action concreto desde la 2026-05.
+> Catálogo completo de `surfaceId.action` por host fn en
+> `docs/games/snake-classic/host-api-changelog.md`.
 
 ---
 
@@ -435,10 +448,260 @@ host.subscribeEvent('MYMOD_APPLY_PRESET', async (payload) => {
 
 ---
 
+## 11 — Mod robusto: detectar límites del framework y degradar bien {#11}
+
+**Problema**: El framework rate-limita, dropea o rechaza partes de mi
+mod silenciosamente (rate-limits, cap de hooks, throttling de
+sampler). Quiero detectarlo y reaccionar — no quedarme ciego.
+
+**Solución**: `host.diagnostics.onLimitHit(cb)`. UN callback, todos
+los eventos. Discriminated union — el `switch` narrowing funciona
+limpio en TypeScript.
+
+```ts
+type LimitHitEvent =
+  | { type: 'register-hook-rejected'; hookName: string; cap: number;
+      currentCount: number }
+  | { type: 'subscribe-event-rejected'; pattern: string; cap: number;
+      currentCount: number }
+  | { type: 'rate-limit-hit';
+      surface: 'hostFn' | 'state.read' | 'state.write'
+        | 'dispatch' | 'storage.bytes';
+      retryAfterMs: number }
+  | { type: 'sampling-throttling-activated'; pattern: string;
+      p95Ms: number; maxMs: number;
+      strategy: 'drop-newest' | 'every-Nth' }
+  | { type: 'sampling-throttling-recovered'; pattern: string;
+      p95Ms: number }
+  | { type: 'storage-quota-exceeded'; key: string;
+      requestedBytes: number; quotaBytes: number };
+
+let cooldownUntil = 0;
+let samplerThrottling = false;
+
+const unsub = host.diagnostics.onLimitHit((evt) => {
+  switch (evt.type) {
+    case 'rate-limit-hit':
+      // Pone el mod en cooldown — el siguiente intento espera
+      // retryAfterMs antes de re-emitir.
+      cooldownUntil = Date.now() + evt.retryAfterMs;
+      host.log.warn(
+        `Rate-limit en ${evt.surface}; reintenta en ${evt.retryAfterMs}ms`,
+      );
+      break;
+    case 'sampling-throttling-activated':
+      // Algunas entregas se dropearán. Marcamos para que la lógica
+      // del mod sea pure-function de "última value" en vez de
+      // acumular incrementos por evento.
+      samplerThrottling = true;
+      host.log.warn(
+        `Sampler activó throttling en '${evt.pattern}' `
+        + `(p95=${evt.p95Ms}ms > ${evt.maxMs}ms). `
+        + 'Bajando trabajo por evento.',
+      );
+      break;
+    case 'sampling-throttling-recovered':
+      samplerThrottling = false;
+      break;
+    case 'register-hook-rejected':
+      // El hook NO está registrado — degradar es opt-in (decidir si
+      // tu mod tiene sentido sin él, o mostrar mensaje al jugador).
+      host.log.error(
+        `Hook '${evt.hookName}' rechazado (excediste cap=${evt.cap}). `
+        + 'Funcionalidad asociada deshabilitada.',
+      );
+      break;
+    case 'subscribe-event-rejected':
+      host.log.error(
+        `Subscribe '${evt.pattern}' rechazado: ya tienes ${evt.cap}.`,
+      );
+      break;
+    case 'storage-quota-exceeded':
+      // El blob es demasiado grande — compactar antes de retry.
+      host.log.warn(
+        `Storage llena al escribir '${evt.key}' `
+        + `(${evt.requestedBytes}B vs quota=${evt.quotaBytes}B).`,
+      );
+      break;
+  }
+});
+
+// Limpieza al teardown del mod (raro — el framework limpia el
+// dispatcher en dispose, pero unsubscribe explícito es buena
+// práctica si tu mod tiene lifecycle propio).
+host.onShutdown?.(() => unsub());
+```
+
+**Reglas del mecanismo**:
+
+- **Per-mod**: solo recibes eventos de TU mod. Cero side-channels
+  cross-mod.
+- **Resilient**: si tu callback throws, el siguiente sigue
+  recibiendo eventos. El framework no propaga el error.
+- **Cap 8 listeners** por mod: spam de `onLimitHit` se ignora silente
+  (protección del host contra abuse).
+- **Re-entrancia bounded** (depth 2): un cb que provoca otro limit
+  no genera recursión infinita.
+- **Zero-overhead** si nunca llamas `onLimitHit`: el dispatcher no
+  emite. Cero coste path feliz.
+
+---
+
+## 12 — Backoff exponencial cuando el host rate-limita tu mod {#12}
+
+**Problema**: Mi mod hace `host.state.write` en respuesta a un evento
+high-frequency. Cuando supera `stateWritesPerSecond`, los writes
+fallan silencioso (mi mod cree que escribió pero NO se escribió).
+
+**Solución**: combinar el `error.code === 'RATE_LIMITED'` del
+return con `onLimitHit` para auto-pausar la cola hasta
+`retryAfterMs`. Implementación con cola in-memory + drenaje
+diferido:
+
+```ts
+const pending: Array<{ path: string; value: unknown }> = [];
+let drainUntil = 0; // ms epoch — pausa hasta este timestamp
+
+host.diagnostics.onLimitHit((evt) => {
+  if (
+    evt.type === 'rate-limit-hit'
+    && evt.surface === 'state.write'
+  ) {
+    // Backoff: añade margen del 20% al retryAfterMs del host.
+    drainUntil = Date.now() + Math.ceil(evt.retryAfterMs * 1.2);
+  }
+});
+
+function enqueueWrite(path: string, value: unknown) {
+  pending.push({ path, value });
+}
+
+function drain() {
+  if (Date.now() < drainUntil) return; // todavía en cooldown
+  while (pending.length > 0) {
+    const job = pending[0];
+    const r = host.state!.write(job.path, job.value);
+    if (!r.ok && r.error?.code === 'RATE_LIMITED') {
+      // El emit del onLimitHit nos pone drainUntil; salimos.
+      return;
+    }
+    pending.shift(); // éxito → consume el job
+  }
+}
+
+// Llama drain() en cada tick del juego (60Hz). Si la cola tiene
+// 1000 jobs y stateWritesPerSecond=10, los 1000 se procesan en
+// ~100s sin que el host degrade.
+host.registerHook('AFTER_TICK', drain);
+```
+
+**Por qué no `retryAfterMs` directo sin margen**: el rate-limit es
+un token-bucket. Si reanudas justo en `retryAfterMs`, tienes ~1
+token disponible → el siguiente write también rate-limita. El
++20% deja que el bucket se rellene mínimamente.
+
+---
+
+## 13 — Auto-pausa al activarse el sampler de F-15 {#13}
+
+**Problema**: Mi mod escucha `SCORE_CHANGED` (high-frequency) y hace
+trabajo pesado (cálculo de leaderboard, render canvas). El sampler
+auto-dropea eventos para proteger el frame budget — mi mod ve menos
+eventos de los que cree.
+
+**Solución**: detectar el throttling y bajar la cantidad de trabajo
+por evento.
+
+```ts
+let mode: 'detailed' | 'lightweight' = 'detailed';
+
+host.diagnostics.onLimitHit((evt) => {
+  if (evt.type === 'sampling-throttling-activated'
+      && evt.pattern === 'SCORE_CHANGED') {
+    mode = 'lightweight';
+    host.log.info('Sampler activado: bajando a render lightweight');
+  }
+  if (evt.type === 'sampling-throttling-recovered'
+      && evt.pattern === 'SCORE_CHANGED') {
+    mode = 'detailed';
+    host.log.info('Sampler recuperado: render detallado de nuevo');
+  }
+});
+
+host.subscribeEvent('SCORE_CHANGED', (payload) => {
+  if (mode === 'detailed') {
+    renderFullLeaderboard(payload); // 8-12ms
+  } else {
+    renderTopScoreOnly(payload); // 1-2ms
+  }
+});
+```
+
+**Por qué dos modos en vez de "saltar el trabajo"**: el sampler
+seguirá midiendo el p95 de TU callback. Si `lightweight` baja el
+p95 bajo el threshold, el sampler se RECUPERA y vuelves a `detailed`
+sin que pierdas eventos importantes (ej. game-over). Es histéresis
+controlada por TU código.
+
+---
+
+## 14 — Self-check al setup: verifica qué se aceptó antes de seguir {#14}
+
+**Problema**: Mi mod registra 8 hooks pero `policy.limits.maxHooks=5`.
+Los últimos 3 silenciosamente NO están registrados. Quiero detectarlo
+al setup y abortar limpio con un mensaje claro al jugador.
+
+**Solución**: `host.diagnostics.getRegisteredHooks()` +
+`getSubscribedEvents()` + `getLimits()`. Llamado UNA vez al final del
+setup — verifica que todo lo que querías está activo.
+
+```ts
+function setup() {
+  host.registerHook('BEFORE_TICK', onBeforeTick);
+  host.registerHook('AFTER_TICK', onAfterTick);
+  host.registerHook('GAME_OVER', onGameOver);
+  host.registerHook('SCORE_CHANGED', onScoreChanged);
+  host.registerHook('LEVEL_UP', onLevelUp);
+  host.registerHook('POWERUP', onPowerUp);
+  host.registerHook('PORTAL', onPortal);
+  host.registerHook('DEMON', onDemon);
+
+  // SELF-CHECK al final del setup.
+  const registered = host.diagnostics.getRegisteredHooks();
+  const expected = [
+    'BEFORE_TICK', 'AFTER_TICK', 'GAME_OVER',
+    'SCORE_CHANGED', 'LEVEL_UP', 'POWERUP',
+    'PORTAL', 'DEMON',
+  ];
+  const missing = expected.filter((h) => !registered.includes(h));
+  if (missing.length > 0) {
+    const lim = host.diagnostics.getLimits();
+    host.log.error(
+      `Setup incompleto: faltan ${missing.length}/${expected.length} `
+      + `hooks (${missing.join(', ')}). `
+      + `Cap maxHooks=${lim?.maxHooks ?? 'sin cap'}. `
+      + 'Sube el cap en policy.ts o reduce hooks del mod.',
+    );
+    return; // el mod sigue parcialmente funcional pero el modder lo sabe
+  }
+
+  host.log.info(`${expected.length} hooks registrados correctamente.`);
+}
+
+setup();
+```
+
+**Cuándo usar self-check**: siempre. Es O(1) al setup y captura una
+clase entera de bugs (caps excedidos, typos en nombres de hooks, etc.)
+que de otro modo darían "el mod no hace lo que debería" en producción
+sin un mensaje útil.
+
+---
+
 ## Más recetas
 
 Si echas en falta una receta, abre issue en el
-[repo del template](https://github.com/leteoworks/mod-template-snake-classic/issues)
+[repo del template](https://github.com/leteoworks/submodules/mod-template-snake-classic/issues)
 con el problema concreto. La intención es que este cookbook crezca
 con casos reales de la comunidad.
 

@@ -49,7 +49,7 @@ con el tag "Featured nomination"._
 Mod oficial first-party. Personaliza power-ups, velocidad y
 progresión con presets divertidos. Sirve de referencia viva para
 modders que estén empezando — su código está en
-[`game-mods/snake-classic/studio.fun-config/`](https://github.com/leteoworks/my-game-fw-mods/tree/main/snake-classic/studio.fun-config)
+[`submodules/game-mods/snake-classic/studio.fun-config/`](https://github.com/leteoworks/my-game-fw-mods/tree/main/snake-classic/studio.fun-config)
 del subrepo de mods first-party, abierto y clonable.
 
 ---

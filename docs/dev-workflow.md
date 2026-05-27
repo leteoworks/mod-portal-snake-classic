@@ -9,14 +9,14 @@
 
 Canonical document to create, iterate, and package mods under the
 studio's brand (`Leteo Works`) that live in the
-[`game-mods/`](https://github.com/leteoworks/my-game-fw-mods)
+[`submodules/game-mods/`](https://github.com/leteoworks/my-game-fw-mods)
 subrepo and consume the `@modules/moddable/*` framework family.
 
 > Prerequisite reading (5 min): subrepo README + the
 > `@modules/moddable` README.
 >
 > For a generic intro to the mod system (without assuming the
-> `game-mods/` subrepo), see [getting-started.md](getting-started.md).
+> `submodules/game-mods/` subrepo), see [getting-started.md](getting-started.md).
 > This doc assumes first-party studio mods.
 >
 > To **manually test the mod end-to-end** like a Steam user
@@ -28,7 +28,7 @@ subrepo and consume the `@modules/moddable/*` framework family.
 ## TL;DR — the cycle in one line
 
 ```
-create mod at game-mods/<gameId>/<modId>/  →  pnpm dev:mod <gameId> <modId>  →  edit src/  →  see change in browser
+create mod at submodules/game-mods/<gameId>/<modId>/  →  pnpm dev:mod <gameId> <modId>  →  edit src/  →  see change in browser
 ```
 
 And for release:
@@ -38,7 +38,7 @@ pnpm build:game <gameId> --mode=electron   # sign + bundle + Electron in one
 ```
 
 The framework takes care of discovering, compiling, signing, and
-bundling all the mods of `game-mods/<gameId>/` automatically.
+bundling all the mods of `submodules/game-mods/<gameId>/` automatically.
 
 ---
 
@@ -46,9 +46,9 @@ bundling all the mods of `game-mods/<gameId>/` automatically.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
-│  Subrepo: game-mods/  (separate repo, git submodule)           │
+│  Subrepo: submodules/game-mods/  (separate repo, git submodule)           │
 │                                                                │
-│  game-mods/snake-classic/studio.gameplay-tuner/                │
+│  submodules/game-mods/snake-classic/studio.gameplay-tuner/                │
 │    ├── mod.json                                                │
 │    ├── src/index.ts        ← you edit here                     │
 │    ├── locales/en.json                                         │
@@ -57,7 +57,7 @@ bundling all the mods of `game-mods/<gameId>/` automatically.
 │    └── dist/mod.js         ← IIFE ES2020 bundle (generated)    │
 └────────────────────────────────────────────────────────────────┘
                                   │
-                                  │  webpack alias: @game-mods/* → ./game-mods/*
+                                  │  webpack alias: @game-mods/* → ./submodules/game-mods/*
                                   ▼
 ┌────────────────────────────────────────────────────────────────┐
 │  Parent repo: my-game-fw-mods-main                             │
@@ -82,13 +82,13 @@ bundling all the mods of `game-mods/<gameId>/` automatically.
 
 **Key rules of this workflow**:
 
-1. **One source of truth per mod**: `game-mods/<gameId>/<modId>/`.
+1. **One source of truth per mod**: `submodules/game-mods/<gameId>/<modId>/`.
 2. **The parent does NOT contain mod code** — only game wiring
    (`policy.ts`, `moddable-config.ts`, `host-adapters.ts`,
    `registries.ts`, `tunables.ts` + the auto-generated
    `bundled-mods-sources.generated.ts`).
 3. **Automatic discovery**: the `build-game-mods.mjs` script
-   walks `game-mods/<gameId>/*/` and emits
+   walks `submodules/game-mods/<gameId>/*/` and emits
    `bundled-mods-sources.generated.ts` with static `?raw`
    imports of each `dist/mod.js`. Adding a mod doesn't require
    touching game code — only regenerating the file.
@@ -115,7 +115,7 @@ bundling all the mods of `game-mods/<gameId>/` automatically.
    the logic per-game. The game only provides its own adapters
    (`host-adapters.ts`) + the declarative `moddable-config.ts`.
 
-> Normative pipeline `game-mods/` → bundle:
+> Normative pipeline `submodules/game-mods/` → bundle:
 > [`../moddable-games/bundled-mods-pipeline.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/moddable-games/bundled-mods-pipeline.md).
 
 ---
@@ -129,7 +129,7 @@ Assuming a mod-compatible game already exists in the framework
 ### Step 1 — Scaffold
 
 ```bash
-cd game-mods/snake-classic
+cd submodules/game-mods/snake-classic
 cp -r studio.gameplay-tuner studio.colorful-snake
 cd studio.colorful-snake
 ```
@@ -258,7 +258,7 @@ Equivalent to:
 node scripts/dev-mod.mjs snake-classic studio.gameplay-tuner
 
 # Internally:
-#  1. Validates that game-mods/snake-classic/studio.gameplay-tuner/ exists.
+#  1. Validates that submodules/game-mods/snake-classic/studio.gameplay-tuner/ exists.
 #  2. pnpm install inside the mod (idempotent, ~10s first time, ~0 later).
 #  3. Launches:
 #       a) pnpm --filter <mod-path> watch    (esbuild --watch)
@@ -269,7 +269,7 @@ node scripts/dev-mod.mjs snake-classic studio.gameplay-tuner
 **What you see on screen**:
 
 ```
-[dev-mod] watching game-mods/snake-classic/studio.gameplay-tuner/
+[dev-mod] watching submodules/game-mods/snake-classic/studio.gameplay-tuner/
 [esbuild]  build OK (143ms)
 [quasar]   READY  Quasar dev server running at http://localhost:9000
 [quasar]   compiled in 4321ms
@@ -319,7 +319,7 @@ What happens, in order:
 
 ```
 1. scripts/build-game-mods.mjs (pre-build hook):
-   ├── Discover: glob game-mods/snake-classic/*/mod.json
+   ├── Discover: glob submodules/game-mods/snake-classic/*/mod.json
    ├── For each mod:
    │   ├── pnpm install (if node_modules doesn't exist)
    │   ├── pnpm build:release (esbuild --minify → dist/mod.js)
@@ -332,7 +332,7 @@ What happens, in order:
        signedAt, signed, sig).
 
 2. quasar build --mode=electron:
-   ├── Webpack resolves alias @game-mods/* → game-mods/*
+   ├── Webpack resolves alias @game-mods/* → submodules/game-mods/*
    ├── bundled-mods-sources.generated.ts contains static ?raw
    │   imports from step 1 → webpack inlines each mod.js as a
    │   string ?raw in the game's bundle
@@ -343,11 +343,11 @@ What happens, in order:
 ```
 
 **N mods**: the script automatically discovers all mods in
-`game-mods/snake-classic/`. Adding mod #7 = `mkdir` + `cp -r` and
+`submodules/game-mods/snake-classic/`. Adding mod #7 = `mkdir` + `cp -r` and
 that's it. Zero framework code.
 
 **Other games?** Same flow. `pnpm build:game pong --mode=electron`
-looks in `game-mods/pong/*/` (when Pong becomes mod-compatible).
+looks in `submodules/game-mods/pong/*/` (when Pong becomes mod-compatible).
 
 ### Variants
 
@@ -405,15 +405,15 @@ window (defined in `@modules/mod-runtime/trust/keys.ts`).
 
 | Component | Status | Notes |
 |---|---|---|
-| Subrepo `game-mods/` (git, submodule in parent) | ✅ Active | Remote: `leteoworks/my-game-fw-mods` (private). |
+| Subrepo `submodules/game-mods/` (git, submodule in parent) | ✅ Active | Remote: `leteoworks/my-game-fw-mods` (private). |
 | `@modules/moddable/*` family (13 submodules) | ✅ Complete | Sprints 1-5 merged (`91285015`). |
-| First mod `studio.gameplay-tuner` v0.1.0 | ✅ Committed | In `game-mods/snake-classic/`. |
+| First mod `studio.gameplay-tuner` v0.1.0 | ✅ Committed | In `submodules/game-mods/snake-classic/`. |
 | Snake `tunables.ts` + `moddable-config.ts` | ✅ Wired | Tests green. `powerupRegistry` added as canonical case of `@modules/moddable/registry` (audit #2 §B). |
 | Webpack alias `@game-mods/*` | ✅ Operational | In `quasar.config.js`, `tsconfig.json`, `jest.config.cjs`. |
 | `bundled-mods-sources.generated.ts` with static `?raw` imports | ✅ Operational | Auto-generated by `build-game-mods.mjs`. Replaces the old `bundled-loader.ts` with `import.meta.glob` (removed in audit #3 §3.5). |
 | `scripts/mods/build-game-mods.mjs` | ✅ Operational | Auto-discover + sha256 + manifest autogen + conditional signing + `BUNDLED_MOD_IDS` with `<modId>@<semver>` format (audit #2 §2.4). |
 | `scripts/mods/dev-mod.mjs` (+ `pnpm dev:mod`) | ✅ Operational | Concurrently esbuild watch + Quasar dev. |
-| Migration of `studio.fun-config` to `game-mods/` | ✅ Migrated | Legacy folder removed from parent. |
+| Migration of `studio.fun-config` to `submodules/game-mods/` | ✅ Migrated | Legacy folder removed from parent. |
 | Hook `build:game` → `build-game-mods.mjs` | ✅ Operational | Automatic pre-build hook in `scripts/game-standalone.mjs`. Also wires `check-bundled-mod-ids-format.mjs` (audit #3). |
 | Policy.ts delegates to `moddableGame.policy` | ✅ Migrated | `surfaces.gameSpecific.tunables` added + host fns auto-registered. ESLint rule `framework/policy-must-delegate-to-composer` enforces it (audit #3 §O). |
 | Framework composer pattern | ✅ Operational | `createGameAnalyticsPipeline`, `createGameBridgeDepsFactory`, `createGameModSources`, `createModHttpClient`, `installWorkshopSubscriptionPoll`, `processRemoteConfigKillSwitch`, `wireModdableGameToRuntime` live in `@modules/mod-runtime/setup`. Only `policy.ts` imports them (audit #2 §3 + audit #3). |
@@ -422,9 +422,9 @@ window (defined in `@modules/mod-runtime/trust/keys.ts`).
 | i18nValidator CI integration | ✅ Operational | `scripts/mods/validate-i18n.ts` + `pnpm lint:mods-i18n`. Automatic hook in `scripts/game-standalone.mjs` after `build-game-mods.mjs`. Fails with exit 1 if a declared `i18nKey` doesn't exist or is empty in `en`/`es`. `I18nValidatorOptions.localesPath` configurable (audit #3 §2.6). |
 | Moddable guards in `husky pre-push` | ✅ Operational | Pre-push runs 4 guards (audit #3 §2.7): `check-bundled-mods-signed`, `check-bundled-mod-ids-format`, `validate-moddable-configs`, `lint:mods-i18n`. |
 
-The workflow works end-to-end. **Moddable family + `game-mods/`
+The workflow works end-to-end. **Moddable family + `submodules/game-mods/`
 subrepo + dev/build pipeline at 100%.** Iterating a mod from
-`game-mods/<gameId>/<modId>/` with
+`submodules/game-mods/<gameId>/<modId>/` with
 `pnpm dev:mod <gameId> <modId>` reloads automatically in the
 browser (~1-2s latency after edit).
 
@@ -435,7 +435,7 @@ browser (~1-2s latency after edit).
 ### "Change in `src/index.ts` doesn't show in browser"
 
 1. Verify `esbuild --watch` is running (`ps aux | grep esbuild`).
-2. Look at `game-mods/<gameId>/<modId>/dist/mod.js` — the mtime
+2. Look at `submodules/game-mods/<gameId>/<modId>/dist/mod.js` — the mtime
    should update on save.
 3. If HMR doesn't fire, look at the Quasar console — sometimes it
    needs a hard reload (Cmd-Shift-R) when the mod structure
@@ -496,7 +496,7 @@ cd game-mods && git push && cd ..
 
 ## 8. FAQ
 
-**Why two repos (parent + subrepo `game-mods/`)?**
+**Why two repos (parent + subrepo `submodules/game-mods/`)?**
 So mods evolve at a different pace from the framework and game.
 Game bump ≠ mod bump ≠ framework bump. Separate repos =
 independent SemVer + clean history.
@@ -512,10 +512,10 @@ contributor mods go through `workshopVerified` signing (not
 `studioSigned`).
 
 **What about third-party mods (Workshop)?**
-NOT in `game-mods/`. They live in Steam Workshop or are sideload.
-`game-mods/` is exclusive to the studio. The distinction matters
+NOT in `submodules/game-mods/`. They live in Steam Workshop or are sideload.
+`submodules/game-mods/` is exclusive to the studio. The distinction matters
 for trust tier:
-- `game-mods/` → always `studioSigned`.
+- `submodules/game-mods/` → always `studioSigned`.
 - Workshop → `workshopVerified` or `unsigned` per policy.
 
 **Do I have to run `pnpm install` in every mod?**
@@ -533,9 +533,9 @@ family provides the HostBridge types for mocking from tests.
 ## Cross-links
 
 - [`../moddable-games/bundled-mods-pipeline.md`](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/moddable-games/bundled-mods-pipeline.md)
-  — normative pipeline `game-mods/` → game bundle (auto-gen,
+  — normative pipeline `submodules/game-mods/` → game bundle (auto-gen,
   CI guards, single source).
-- [game-mods/README.md](https://github.com/leteoworks/my-game-fw-mods/blob/main/README.md)
+- [submodules/game-mods/README.md](https://github.com/leteoworks/my-game-fw-mods/blob/main/README.md)
   — the subrepo
 - [docs/mods/README.md](https://github.com/leteoworks/my-game-fw/blob/main/docs/mods/README.md)
   — master index of the mod system

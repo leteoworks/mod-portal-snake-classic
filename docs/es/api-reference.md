@@ -222,13 +222,60 @@ Necesita permiso `{ type: 'powerups', actions: [...] }`.
 host.callHostFn('togglePowerUp', { powerupId: 'mega-fruit', enabled: false })
 ```
 
+Requiere `actions: ['toggle']` en el permiso `powerups`.
+
 ### `host.callHostFn('setPowerUpSpawnChance', { powerupId, chance })`
 
-Modifica `spawnChance` (0..1).
+Modifica `spawnChance` (0..1). Requiere `actions: ['tuneProbabilities']`.
 
 ### Power-ups específicos del juego
 
 Cada juego publica su API en `docs/games/<id>/host-api-changelog.md`.
+
+---
+
+## Permission check per host fn (importante)
+
+**Cambio reciente — release de seguridad 2026-05**: cada host fn
+asociada a una surface (`game-specific` con `surfaceId` + `action`)
+ahora requiere el `action` específico declarado en
+`manifest.permissions[].actions`. Antes el permiso top-level era
+suficiente; ahora el framework verifica el `action` concreto antes
+de invocar la host fn.
+
+Síntoma de un mod que NO declara el `action` específico:
+
+```
+{
+  ok: false,
+  error: {
+    code: 'PERMISSION_DENIED',
+    message: "host fn 'togglePowerUp' requiere granted.gameSpecific.powerups.toggle que el manifest no declaró."
+  }
+}
+```
+
+**Fix**: añade el `action` al `actions[]` del permiso. Ejemplo:
+
+```json
+{
+  "type": "powerups",
+  "actions": ["toggle", "tuneProbabilities"],
+  "rationale": "Para activar el modo speedrun y ajustar las probabilidades de spawn"
+}
+```
+
+**Catálogo de actions por surface**: el juego declara los actions
+válidos en su `policy.surfaces.gameSpecific.<surfaceId>.actions`.
+La doc del juego (`docs/games/<id>/host-api-changelog.md`) lista
+para cada host fn qué `surfaceId.action` requiere. Si no existe
+documentación explícita, ver la firma de `defineHostFunction`
+en `src/games/<id>/core/` y buscar el campo `surface`.
+
+**Host fns SIN action** (utilities framework-level): siguen
+funcionando sin grant específico — solo necesitan el permiso
+top-level. Ej: `gameConfigSet`, `gameConfigReset`,
+`gameConfigSnapshot`.
 
 ---
 
@@ -337,6 +384,115 @@ host.analytics.track('preset_applied', { presetName: 'hardcore' })
 ```
 
 Los eventos `mod.framework.*` los emite el runtime sin que hagas nada.
+
+---
+
+## Diagnostics — saber qué te ha aceptado/rechazado el framework
+
+Disponible siempre, no requiere permiso. Sirve para que tu mod sea
+**robusto frente a los caps y rate-limits** del framework: en vez
+de fallar silencioso, recibes un evento estructurado que puedes
+manejar.
+
+**Cobertura por motor (estado actual)**:
+
+| Motor | `host.log.*` | `host.diagnostics.*` | Notas |
+|---|---|---|---|
+| `quickjs` | ✅ Cableado | ✅ Cableado | Motor principal (Snake Classic) |
+| `quickjs-declarative-ui` | ✅ Cableado | ✅ Cableado | Hereda de quickjs |
+| `iframe-sandbox` | ⚠ Pending wiring | ⚠ Pending wiring | Motor experimental |
+| `web-worker-offscreen-canvas` | ⚠ Pending wiring | ⚠ Pending wiring | Motor experimental |
+| `isolated-vm` | ⚠ Pending wiring | ⚠ Pending wiring | Motor experimental |
+| `ses-compartment` | ⚠ Pending wiring | ⚠ Pending wiring | Motor experimental |
+| `shadow-realm` | ⚠ Pending wiring | ⚠ Pending wiring | Motor experimental |
+
+Si tu mod usa `quickjs` o `quickjs-declarative-ui` (el default de
+Snake Classic) la API descrita debajo está activa. Si usas un motor
+experimental, asume que `host.diagnostics` puede ser `undefined` y
+guarda con `if (host.diagnostics?.onLimitHit)` hasta que el cabling
+de ese motor cierre.
+
+### `host.diagnostics.onLimitHit(callback): unsubscribe`
+
+REACTIVO — emisor centralizado de TODOS los eventos de limitación.
+UN callback maneja todos los casos con un `switch (evt.type)`.
+
+```ts
+const unsub = host.diagnostics.onLimitHit((evt) => {
+  switch (evt.type) {
+    case 'rate-limit-hit':
+      // evt.surface = 'hostFn' | 'state.read' | 'state.write'
+      //   | 'dispatch' | 'storage.bytes'
+      // evt.retryAfterMs: ms hasta que se libere un token
+      break;
+    case 'register-hook-rejected':
+      // evt.hookName, evt.cap, evt.currentCount
+      break;
+    case 'subscribe-event-rejected':
+      // evt.pattern, evt.cap, evt.currentCount
+      break;
+    case 'sampling-throttling-activated':
+      // evt.pattern, evt.p95Ms, evt.maxMs,
+      // evt.strategy: 'drop-newest' | 'every-Nth'
+      break;
+    case 'sampling-throttling-recovered':
+      // evt.pattern, evt.p95Ms
+      break;
+    case 'storage-quota-exceeded':
+      // evt.key, evt.requestedBytes, evt.quotaBytes
+      break;
+  }
+});
+```
+
+**Garantías del mecanismo**:
+
+- **Per-mod**: solo recibes eventos de TU mod. Cero side-channels
+  cross-mod.
+- **Resilient a faults**: si tu callback throws, el siguiente cb
+  sigue recibiendo eventos. El framework no propaga el error.
+- **Cap 8 listeners** por mod (protección del host contra abuse).
+- **Re-entrancia bounded** (depth 2): un cb que provoca otro
+  limit-hit NO genera recursión infinita.
+- **Cero overhead path feliz**: si nunca llamas `onLimitHit`, el
+  dispatcher no emite. No te penaliza por estar ahí.
+
+Ver recetas: [cookbook §11-§14](cookbook.md#11).
+
+### `host.diagnostics.getRegisteredHooks(): string[]`
+
+INTROSPECCIÓN — devuelve la lista de hooks que tu mod tiene
+registrados HOY (post-cap). Útil para self-check al setup:
+
+```ts
+host.registerHook('BEFORE_TICK', onBeforeTick);
+host.registerHook('AFTER_TICK', onAfterTick);
+// ... (más hooks)
+const registered = host.diagnostics.getRegisteredHooks();
+if (!registered.includes('AFTER_TICK')) {
+  host.log.error('Hook AFTER_TICK NO se registró (cap excedido?)');
+}
+```
+
+### `host.diagnostics.getSubscribedEvents(): Array<{ pattern, count }>`
+
+Lista los patterns a los que tu mod está actualmente suscrito con el
+counter de subscripciones por pattern. Útil para verificar que no
+estás duplicando subscribes accidentalmente.
+
+### `host.diagnostics.getLimits(): { ... } | null`
+
+Devuelve los caps activos del juego (`maxHooks`, `maxSubscribersPer
+Event`, `hostFnCallsPerSecond`, etc.). `null` si el juego no declara
+limits (back-compat).
+
+Útil para que tu mod escale su comportamiento al cap real:
+
+```ts
+const lim = host.diagnostics.getLimits();
+const maxHooks = lim?.maxHooks ?? Infinity;
+const hooksToRegister = ALL_HOOKS.slice(0, maxHooks);
+```
 
 ---
 

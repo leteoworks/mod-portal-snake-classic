@@ -14,7 +14,7 @@ data without waiting for an event, and `host.dispatch` to notify
 the player.
 
 > Reference code: any mod in the
-> [`game-mods/`](https://github.com/leteoworks/my-game-fw-mods)
+> [`submodules/game-mods/`](https://github.com/leteoworks/my-game-fw-mods)
 > subrepo that uses `subscribeEvent` with typed payload.
 
 ---

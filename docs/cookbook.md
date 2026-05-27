@@ -443,7 +443,7 @@ host.subscribeEvent('MYMOD_APPLY_PRESET', async (payload) => {
 ## More recipes
 
 If you're missing a recipe, open an issue at the
-[template repo](https://github.com/leteoworks/mod-template-snake-classic/issues)
+[template repo](https://github.com/leteoworks/submodules/mod-template-snake-classic/issues)
 with the specific problem. The intent is for this cookbook to
 grow with real community cases.
 

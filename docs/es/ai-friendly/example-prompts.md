@@ -118,7 +118,7 @@ la misma forma. Refactorizalas a:
    `fallback`.
 
 Ejemplo de patrón: studio.fun-config ya hace exactamente esto —
-mira game-mods/snake-classic/studio.fun-config/src/settings-tab.ts
+mira submodules/game-mods/snake-classic/studio.fun-config/src/settings-tab.ts
 si necesitas referencia.
 ```
 
@@ -249,7 +249,7 @@ Detalles operacionales:
   NO escribe storage (anti-patrón last-write-wins, ver
   CLAUDE.md).
 
-Toma como referencia game-mods/snake-classic/studio.gameplay-tuner/
+Toma como referencia submodules/game-mods/snake-classic/studio.gameplay-tuner/
 si necesitas ver el patrón en producción.
 ```
 
@@ -338,7 +338,7 @@ Detalles:
 - Tras aplicar, dispatch MOD_NOTIFICATION con "Preset X aplicado".
 
 Referencia: studio.gameplay-tuner usa exactamente este patrón —
-mira game-mods/snake-classic/studio.gameplay-tuner/src/presets.ts
+mira submodules/game-mods/snake-classic/studio.gameplay-tuner/src/presets.ts
 y src/apply-config.ts si necesitas el shape.
 ```
 

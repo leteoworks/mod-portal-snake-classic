@@ -9,7 +9,7 @@
 
 Tabla de problemas comunes al escribir o publicar mods, con causa
 probable y fix. Si tu problema no está aquí, abre issue en el
-[repo del template](https://github.com/leteoworks/mod-template-snake-classic/issues)
+[repo del template](https://github.com/leteoworks/submodules/mod-template-snake-classic/issues)
 con el síntoma exacto.
 
 ---
@@ -33,6 +33,17 @@ con el síntoma exacto.
 | Worskhop upload sin botón "Submit" | Falta campo obligatorio (Title, Description, Tag) | Rellena todos los campos requeridos del formulario Steam. |
 | `degit` falla con 404 | Repo template no es público, o nombre mal escrito | Verifica `leteoworks/mod-template-snake-classic` accesible. |
 | `pnpm build` lento (>30s) | Bundling con deps externas no marcadas | `mod.json.entry` debe apuntar a IIFE bundleado sin externals. `external: []` en build.mjs. |
+| `host.callHostFn` / `state.*` / `dispatch` devuelve `error.code: 'RATE_LIMITED'` | Excediste el rate-limit per-mod del framework | Suscríbete a `host.diagnostics.onLimitHit` para detectar la causa; aplica backoff con `retryAfterMs`. Ver [cookbook §12](cookbook.md#12). |
+| `host.registerHook(...)` devuelve undefined pero el hook NO se ejecuta | Excediste `policy.limits.maxHooks` — el motor rechazó el hook silencioso al sandbox | Llama `host.diagnostics.getRegisteredHooks()` al final del setup para verificar. Self-check en [cookbook §14](cookbook.md#14). |
+| Mi subscriber recibe menos eventos de los esperados (eventos high-frequency) | El sampler de F-15 activó throttling: tu callback p95 supera `maxCallbackMs` | `onLimitHit` recibe `sampling-throttling-activated`. Baja trabajo por evento o ajusta `maxCallbackMs` en la annotation. Ver [cookbook §13](cookbook.md#13). |
+| `host.storage.set(big, value)` falla con `QUOTA_EXCEEDED` | Excediste `policy.limits.storageQuotaKb` | Compacta el value, comprime con `JSON.stringify` + run-length, o pide más quota en el manifest. `onLimitHit` te avisa al instante. |
+| `host.subscribeEvent(...)` devuelve un unsubscribe que no recibe nada | Excediste `maxSubscribersPerEvent` para ese pattern | Llama una sola vez por pattern; usa un dispatcher interno si necesitas N callbacks. `onLimitHit` recibe `subscribe-event-rejected`. |
+| `host.callHostFn(...)` devuelve `PERMISSION_DENIED` con mensaje "requiere granted.gameSpecific.X.Y" | Falta el `action` específico en el `actions[]` del permiso (release seguridad 2026-05) | Añade el `action` mencionado en el error al `actions[]` del permiso correspondiente. Ver [api-reference § Permission check](api-reference.md#permission-check-per-host-fn). |
+| `pnpm mods:validate` falla con "Unrecognized key(s) in object" | Manifest tiene campo extra no soportado (typo, deprecated, experimental) | El schema usa `.strict()`: typos como `verison`/`metdata`/etc no pasan silente. Revisa el field name contra [manifest-format.md](manifest-format.md). |
+| Mod recibe `RATE_LIMITED` sin haber excedido su per-mod cap | Cap aggregate del runtime — N mods activos comparten cap superior | Si hay ≥10 mods activos consumiendo cada uno su cap individual, el cap aggregate compartido (~10× per-mod típico) puede saturar. Backoff con `retryAfterMs` igual que para per-mod. Mod legítimo en sesión normal NO debería tocarlo. |
+| `host.diagnostics.onLimitHit` no recibe eventos esperados | Tu handler está throwing (framework swallowea silente pero ahora avisa) | Mira la consola por `[mod:<id>] host.diagnostics.onLimitHit callback está throwing — N veces`. Mensaje rate-limited a 1/min. Fix el handler. |
+| Mutar un objeto recibido en `subscribeEvent` callback lanza `TypeError` (`Cannot assign to read only property`) | Defensa F37 (2026-05): payloads cross-mod son deep-frozen | No mutes el payload — créate una copia local si necesitas modificar. Patrón: `const my = JSON.parse(JSON.stringify(payload))`. |
+| `manifest.engine.preferred` no se respeta y el juego elige otro motor del `fallbacks[]` | Cambio F02 (2026-05): el ORDEN de selección lo decide la policy del juego, no el mod | El manifest declara qué motores ACEPTA (set: preferred + fallbacks). El juego elige entre esos el que prefiera (típicamente el más fuerte). Comportamiento intencional. |
 
 ---
 
@@ -322,6 +333,73 @@ OK pero el juego no aplica el valor.
 4. **Sin permiso `state-write`**. Algunos tunables son
    read-only durante una partida en curso. `GAME_STARTED` es el
    momento safe para escribir.
+
+---
+
+## Sección 10 — El framework limita o dropea partes de mi mod silenciosamente
+
+### Síntoma
+
+Una o varias de:
+
+- Mis writes a `host.state.write` no se aplican y `error.code` es
+  `'RATE_LIMITED'`.
+- `host.registerHook(...)` devuelve undefined igual que en éxito pero
+  el hook NUNCA se ejecuta.
+- Mi subscriber a `SCORE_CHANGED` recibe la mitad o menos de los
+  eventos esperados.
+- `host.storage.set(...)` devuelve `error.code: 'QUOTA_EXCEEDED'`.
+- `host.subscribeEvent(...)` devuelve un unsubscribe pero el callback
+  nunca se invoca.
+
+### Causa
+
+El framework aplica caps + rate-limits + auto-throttling per-mod por
+diseño (proteger el frame budget del juego de mods accidentalmente
+costosos o maliciosos). Antes esto era silente — ahora hay un canal
+reactivo único: `host.diagnostics.onLimitHit(cb)`.
+
+### Diagnóstico — UN listener para TODO
+
+```ts
+host.diagnostics.onLimitHit((evt) => {
+  host.log.warn('Limit hit:', JSON.stringify(evt));
+});
+```
+
+El JSON dice exactamente qué falló y por qué — surface, retryAfterMs,
+caps, p95 actual. Cero adivinanza.
+
+### Fix por tipo de evento
+
+| Evento | Significado | Fix |
+|---|---|---|
+| `rate-limit-hit` | Excediste el rate-limit (callHostFn / state.read / state.write / dispatch / storage.bytes) | Aplica backoff con `retryAfterMs` + 20% margen. Ver [cookbook §12](cookbook.md#12). |
+| `register-hook-rejected` | Excediste `policy.limits.maxHooks` — el hook NO se registró | Self-check al setup con `host.diagnostics.getRegisteredHooks()`. Ver [cookbook §14](cookbook.md#14). |
+| `subscribe-event-rejected` | Excediste `maxSubscribersPerEvent` para ese pattern | Suscríbete UNA vez por pattern; despacha internamente. |
+| `sampling-throttling-activated` | El sampler F-15 activó throttling porque tu callback p95 > `maxCallbackMs` | Baja trabajo por evento (modo lightweight); ver [cookbook §13](cookbook.md#13). |
+| `sampling-throttling-recovered` | El sampler volvió a flujo normal | Re-habilita trabajo detallado. |
+| `storage-quota-exceeded` | Excediste `policy.limits.storageQuotaKb` | Compacta el value (JSON.stringify + run-length) o sube quota en el manifest. |
+
+### Limitaciones del mecanismo (intencionales)
+
+- **Solo recibes eventos de TU mod**. Sin side-channels cross-mod.
+- **Cap 8 listeners** por mod: spam de `onLimitHit` se ignora silente
+  (protección del host contra abuse — un mod legítimo nunca necesita
+  más de 1-2 listeners).
+- **Re-entrancia bounded** (depth 2): un callback que provoca otro
+  limit-hit (ej: log via storage que estaba rate-limited) NO genera
+  recursión infinita. El emit anidado tras depth=2 se descarta.
+- **Cero overhead path feliz**: si nunca llamas `onLimitHit`, el
+  dispatcher NO emite nada. No te penaliza por estar ahí.
+
+### Si todo lo demás falla
+
+`host.diagnostics.getLimits()` te devuelve los caps activos. Compara
+contra lo que tu mod necesita. Si necesitas más, justifícalo en el
+PR / Workshop description y pide al juego que suba el cap en su
+`policy.ts`. Si el cap es razonable para un mod normal, repiensa tu
+estrategia (cookbooks §11-§14).
 
 ---
 
