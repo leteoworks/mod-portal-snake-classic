@@ -80,6 +80,7 @@ const sidebarEn = [
       { text: 'API reference', link: '/api-reference' },
       { text: 'Multi-engine', link: '/multi-engine' },
       { text: 'Targeting games', link: '/targeting-games' },
+      { text: 'In-game wiki for your mod', link: '/mod-wiki' },
     ],
   },
   {
@@ -173,6 +174,7 @@ const sidebarEs = [
       { text: 'API reference', link: '/es/api-reference' },
       { text: 'Multi-engine', link: '/es/multi-engine' },
       { text: 'Targeting games', link: '/es/targeting-games' },
+      { text: 'Wiki in-game de tu mod', link: '/es/mod-wiki' },
     ],
   },
   {
