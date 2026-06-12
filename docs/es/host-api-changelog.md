@@ -5,9 +5,9 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Host API — snake-classic v1.0.90
+# Host API — snake-classic v1.0.107
 
-> Host API version: `1.0.0`
+> Host API version: `1.2.0`
 > Auto-generado por `@modules/moddable/changelog-gen`. NO editar a mano.
 
 > Auto-generado por scripts/mods/gen-moddable-artifacts.mjs.
@@ -87,34 +87,41 @@ Medidos automaticamente por el runtime y gatillan throttling adaptativo antes de
 
 ## Tunables
 
-| Name | Type | Default | Range / Enum | Tier | Aplica |
-|---|---|---|---|---|---|
-| `maxLives` | integer | `25` | [1, 50] | — | next-game |
-| `initialSpeedTickMs` | integer | `200` | [80, 500] | — | next-game |
-| `pointsPerFood` | integer | `10` | [1, 100] | — | immediate |
-| `powerupSpawnInterval` | integer | `3` | [1, 10] | — | immediate |
-| `powerupSpeedBoostEnabled` | boolean | `true` | — | — | next-game |
-| `powerupInvincibilityEnabled` | boolean | `true` | — | — | next-game |
-| `powerupDoublePointsEnabled` | boolean | `true` | — | — | next-game |
-| `powerupMagnetEnabled` | boolean | `true` | — | — | next-game |
-| `powerupShrinkEnabled` | boolean | `true` | — | — | next-game |
-| `powerupGhostEnabled` | boolean | `true` | — | — | next-game |
-| `powerupGoldenAppleEnabled` | boolean | `true` | — | — | next-game |
-| `powerupDemolitionEnabled` | boolean | `true` | — | — | next-game |
-| `powerupEarthquakeEnabled` | boolean | `true` | — | — | next-game |
-| `powerupBombPickupEnabled` | boolean | `true` | — | — | next-game |
-| `powerupBrickBlastEnabled` | boolean | `true` | — | — | next-game |
-| `powerupExtraLifeEnabled` | boolean | `true` | — | — | next-game |
-| `powerupSummonSnakeEnabled` | boolean | `true` | — | — | next-game |
-| `powerupBlindfoldEnabled` | boolean | `true` | — | — | next-game |
-| `powerupFragileWallEnabled` | boolean | `true` | — | — | next-game |
-| `powerupBrickRevivalEnabled` | boolean | `true` | — | — | next-game |
-| `powerupPortalEnabled` | boolean | `true` | — | — | next-game |
-| `powerupDemonEnabled` | boolean | `true` | — | — | next-game |
-| `powerupBaseballBatEnabled` | boolean | `true` | — | — | next-game |
-| `powerupDoubleLengthEnabled` | boolean | `true` | — | — | next-game |
-| `powerupRainbowHeartEnabled` | boolean | `true` | — | — | next-game |
-| `powerupTimeTravelEnabled` | boolean | `true` | — | — | next-game |
+| Name | Type | Default | Range / Enum | Tier | Aplica | Descripcion |
+|---|---|---|---|---|---|---|
+| `maxLives` | integer | `25` | [1, 50] | — | next-game | Maximo de vidas acumulables (cap del stack) |
+| `initialSpeedTickMs` | integer | `200` | [80, 500] | — | next-game | Velocidad inicial — tick base en ms |
+| `pointsPerFood` | integer | `10` | [1, 100] | — | immediate | Puntos por comida normal |
+| `powerupSpawnInterval` | integer | `3` | [1, 10] | — | immediate | Comidas entre intentos de spawn de powerup |
+| `powerupSpeedBoostEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Speed Boost |
+| `powerupInvincibilityEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Invincibility |
+| `powerupDoublePointsEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Double Points |
+| `powerupMagnetEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Magnet |
+| `powerupShrinkEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Shrink |
+| `powerupGhostEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Ghost |
+| `powerupGoldenAppleEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Golden Apple |
+| `powerupDemolitionEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Demolition |
+| `powerupEarthquakeEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Earthquake |
+| `powerupBombPickupEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Bomb Pickup (solo ruleta) |
+| `powerupBrickBlastEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Brick Blast |
+| `powerupExtraLifeEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Extra Life |
+| `powerupSummonSnakeEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Summon Snake |
+| `powerupBlindfoldEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Blindfold |
+| `powerupFragileWallEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Fragile Wall |
+| `powerupBrickRevivalEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Brick Revival |
+| `powerupPortalEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Portal |
+| `powerupDemonEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Demon |
+| `powerupBaseballBatEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Baseball Bat |
+| `powerupDoubleLengthEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Double Length |
+| `powerupRainbowHeartEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Rainbow Heart |
+| `powerupTimeTravelEnabled` | boolean | `true` | — | — | next-game | Habilita el powerup Time Travel |
+| `uiIconPreset` | string | `''` | — | — | restart-required | Preset de iconos de UI activo (vacio = default del juego); aplica al re-montar la ruta |
+| `uiFontPreset` | string | `''` | — | — | restart-required | Preset tipografico de UI activo (vacio = default del juego); aplica al re-montar la ruta |
+| `canvasPalette` | string | `''` | — | — | immediate | Paleta del canvas activa (vacio = seguir el setting theme) |
+| `hudPosition` | enum | `'default'` | default \| top \| bottom \| left \| right | — | immediate | Posicion del HUD (default = preferencia del jugador) |
+| `hudRatio` | enum | `'default'` | default \| golden-major \| golden-minor \| golden-third \| golden-fourth \| golden-fifth \| thirds-two \| thirds-one \| sqrt2-major \| sqrt2-inner \| sqrt2-minor \| zones-focal \| zones-side \| zones-bottom-bar \| zones-top-bar | — | immediate | Preset de tamano del HUD (default = preferencia del jugador) |
+| `hudOverlayMode` | enum | `'default'` | default \| on \| off | — | immediate | Modo overlay del HUD (default = preferencia del jugador) |
+| `hudOpacity` | number | `0` | [0, 1] | — | immediate | Opacidad del HUD en overlay (0 = preferencia del jugador; el resto se clampea a 0.1-1.0) |
 
 ## Power-ups
 
@@ -200,6 +207,79 @@ Mods first-party que viajan dentro del bundle del juego. El jugador puede activa
 
 - Items declarados: 22
 - Items enabled por defecto: 22
+
+### powerup-art
+
+- Items declarados: 24
+- Items enabled por defecto: 24
+
+### canvas-palettes
+
+- Items declarados: 3
+- Items enabled por defecto: 3
+
+### ui-icon-presets
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
+### ui-font-presets
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
+### art-animations
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
+### ttl-bar-styles
+
+- Items declarados: 7
+- Items enabled por defecto: 7
+
+### canvas-decor-colors
+
+- Items declarados: 8
+- Items enabled por defecto: 8
+
+### art-tilemaps
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
+### art-tile-refs
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
+## Extension points
+
+| Name | Default | Impls registradas |
+|---|---|---|
+| `clone-ai-strategy` | `classic` | 1 |
+
+## Asset slots
+
+### `snake-art`
+
+- Claves: 29
+- Lista: `player-head`, `player-body`, `ghost-head`, `clone-head-yellow`, `clone-body-yellow`, `clone-head-blue`, `clone-body-blue`, `brick-lethal`, `brick-fragile`, `demon`, `bomb`, `food`, `powerup-pill-yellow`, `powerup-pill-blue`, `heart`, `rainbow-drop`, `portal`, `white-portal`, `entry-arrow`, `brick-lethal:red`, `brick-lethal:blue`, `brick-fragile:yellow`, `brick-fragile:blue`, `demon:yellow`, `demon:blue`, `demon:red`, `heart:yellow`, `heart:blue`, `heart:rainbow`
+
+### `snake-overlay-images`
+
+- Claves: 6
+- Lista: `snake-logo-static`, `snake-died`, `snake-happy`, `snake-logo-sleep`, `snake-logo-close-eyes`, `snake-logo-mid-close-eyes`
+
+### `snake-hud-css-vars`
+
+- Claves: 19
+- Lista: `core`, `bright`, `soft`, `dim`, `pure`, `soft-70`, `soft-55`, `soft-45`, `soft-35`, `soft-28`, `soft-22`, `soft-18`, `soft-10`, `soft-08`, `bg-gradient`, `bg-gradient-hover`, `glow-base`, `glow-hover`, `glow-dim`
+
+### `snake-sfx`
+
+- Claves: 22
+- Lista: `eat`, `lastFood`, `die`, `click`, `levelUp`, `bonusLevel`, `miniLevelDefeat`, `heartCollected`, `entitySpawnTick`, `powerUpPositive`, `powerUpNegative`, `extraLifeLost`, `recordBeaten`, `enemyDeath`, `brickSpawn`, `brickDestroy`, `earthquake`, `bombExplosion`, `portalTeleport`, `blockedClose`, `homeMenuClick`, `homeMenuHover`
 
 ## Host functions
 
