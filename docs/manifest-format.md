@@ -103,8 +103,10 @@ SemVer range of the game's host API. Check the
 Convention: `^X.Y.Z` with the minimum version your mod needs
 (Snake Classic: `^2.0.0` since Host API 2.0.0; with `^1.x` the mod
 does not load). The game understands four forms —exact, `^`, `~`
-and `>=`—; of a compound range it only reads the first term, and a
-bare `<` leaves the mod `incompatible`.
+and `>=`—. A compound range (`>=2.0.0 <3.0.0`) fails manifest
+validation: the mod is marked `invalid` and does not load. `<`, `<=`,
+`>` or mixes such as `^~` do pass it, but match no version, so the mod
+is marked `incompatible`.
 
 ### `requires.dlcs`
 

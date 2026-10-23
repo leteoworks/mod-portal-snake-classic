@@ -87,11 +87,13 @@ SemVer range:
 - `1.0.183`: solo esa versión exacta.
 
 Son las cuatro formas que el juego entiende. Un rango compuesto
-(`>=1.0.0 <2.0.0`) NO se admite: el juego solo lee el primer término
-(eso es `>=1.0.0`, sin techo) y el resto lo ignora. Un `<` suelto
-(`<2.0.0`) no casa con ninguna versión y tu mod queda `incompatible`.
+(`>=1.0.0 <2.0.0`) NO se admite: el manifest no pasa la validación y tu
+mod queda `invalid` (no carga). Para acotar por arriba usa `^` o `~`.
+Un `<` suelto (`<2.0.0`), `<=`, `>` o una mezcla como `^~1.0.0` sí
+pasan la validación, pero no casan con ninguna versión y tu mod queda
+`incompatible`.
 
-Pon el rango más amplio que has testeado. Si solo probaste con 2.3.0:
+Pon el rango más amplio que has testeado. Si solo probaste con 1.3.0:
 
 ```
 "gameVersion": "^1.3.0"   // bien

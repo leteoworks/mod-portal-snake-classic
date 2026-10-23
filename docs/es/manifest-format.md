@@ -110,9 +110,10 @@ Rango SemVer de la host API del juego. Consulta el
 `host-api-changelog` del juego en `docs/games/<id>/`. Convención:
 `^X.Y.Z` con la mínima versión que tu mod necesita (Snake Classic:
 `^2.0.0` desde la Host API 2.0.0; con `^1.x` el mod no carga). El
-juego entiende cuatro formas —exacto, `^`, `~` y `>=`—; de un rango
-compuesto solo lee el primer término y un `<` suelto deja el mod
-`incompatible`.
+juego entiende cuatro formas —exacto, `^`, `~` y `>=`—. Un rango
+compuesto (`>=2.0.0 <3.0.0`) no pasa la validación del manifest: el mod
+queda `invalid` y no carga. `<`, `<=`, `>` o mezclas como `^~` sí la
+pasan, pero no casan con ninguna versión y el mod queda `incompatible`.
 
 ### `requires.dlcs`
 
