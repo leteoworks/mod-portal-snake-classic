@@ -55,7 +55,7 @@ Cambia el `id` y `metadata.name` (el resto déjalo igual por ahora):
   "version": "0.1.0",
   "target": { "gameId": "snake-classic", "gameVersion": "^1.0.0" },
   "engine": { "preferred": "quickjs-declarative-ui", "fallbacks": ["isolated-vm"] },
-  "requires": { "hostApi": "^1.0.0" },
+  "requires": { "hostApi": "^2.0.0" },
   "entry": "dist/mod.js",
   "permissions": [
     {

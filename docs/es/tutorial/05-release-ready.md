@@ -145,7 +145,7 @@ Antes de publicar, revisa `mod.json`:
     "preferred": "quickjs-declarative-ui",
     "fallbacks": ["isolated-vm"]
   },
-  "requires": { "hostApi": "^1.0.0", "dlcs": [] },
+  "requires": { "hostApi": "^2.0.0", "dlcs": [] },
   "entry": "dist/mod.js",
   "permissions": [
     {

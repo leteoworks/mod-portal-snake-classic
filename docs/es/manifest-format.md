@@ -20,9 +20,9 @@ modder. Para la versión técnica que el framework consume, ver
   "manifestVersion": 1,
   "id": "yourhandle.modname",
   "version": "1.0.0",
-  "target": { "gameId": "snake-classic", "gameVersion": "^2.0.0" },
+  "target": { "gameId": "snake-classic", "gameVersion": "^1.0.0" },
   "engine": { "preferred": "quickjs-declarative-ui", "fallbacks": ["isolated-vm"] },
-  "requires": { "hostApi": "^1.0.0", "dlcs": [] },
+  "requires": { "hostApi": "^2.0.0", "dlcs": [] },
   "entry": "dist/mod.js",
   "permissions": [],
   "analytics": { "events": [] },
@@ -108,7 +108,11 @@ ramificar, no asumas que `preferred` es lo que recibiste.
 
 Rango SemVer de la host API del juego. Consulta el
 `host-api-changelog` del juego en `docs/games/<id>/`. Convención:
-`^X.Y.Z` con la mínima versión que tu mod necesita.
+`^X.Y.Z` con la mínima versión que tu mod necesita (Snake Classic:
+`^2.0.0` desde la Host API 2.0.0; con `^1.x` el mod no carga). El
+juego entiende cuatro formas —exacto, `^`, `~` y `>=`—; de un rango
+compuesto solo lee el primer término y un `<` suelto deja el mod
+`incompatible`.
 
 ### `requires.dlcs`
 

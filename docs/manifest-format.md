@@ -20,9 +20,9 @@ For the technical version the framework consumes, see
   "manifestVersion": 1,
   "id": "yourhandle.modname",
   "version": "1.0.0",
-  "target": { "gameId": "snake-classic", "gameVersion": "^2.0.0" },
+  "target": { "gameId": "snake-classic", "gameVersion": "^1.0.0" },
   "engine": { "preferred": "quickjs-declarative-ui", "fallbacks": ["isolated-vm"] },
-  "requires": { "hostApi": "^1.0.0", "dlcs": [] },
+  "requires": { "hostApi": "^2.0.0", "dlcs": [] },
   "entry": "dist/mod.js",
   "permissions": [],
   "analytics": { "events": [] },
@@ -100,7 +100,11 @@ restrictive.
 
 SemVer range of the game's host API. Check the
 `host-api-changelog` of the game in `docs/games/<id>/`.
-Convention: `^X.Y.Z` with the minimum version your mod needs.
+Convention: `^X.Y.Z` with the minimum version your mod needs
+(Snake Classic: `^2.0.0` since Host API 2.0.0; with `^1.x` the mod
+does not load). The game understands four forms —exact, `^`, `~`
+and `>=`—; of a compound range it only reads the first term, and a
+bare `<` leaves the mod `incompatible`.
 
 ### `requires.dlcs`
 

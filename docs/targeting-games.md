@@ -18,7 +18,7 @@ multiple copies.
 
 ```json
 {
-  "target": { "gameId": "snake-classic", "gameVersion": "^2.0.0" }
+  "target": { "gameId": "snake-classic", "gameVersion": "^1.0.0" }
 }
 ```
 
@@ -78,21 +78,28 @@ against that one.
 ```json
 "target": {
   "gameId": "snake-classic",
-  "gameVersion": "^2.0.0"
+  "gameVersion": "^1.0.0"
 }
 ```
 
 SemVer range:
-- `^2.0.0`: compatible with 2.0.0, 2.5.7, 2.99.99 — NOT 3.0.0.
-- `~2.0.0`: compatible with 2.0.x — NOT 2.1.0.
-- `>=2.0.0 <3.0.0`: explicit.
+- `^1.0.0`: compatible with 1.0.0, 1.5.7, 1.99.99 — NOT 2.0.0.
+- `~1.0.0`: compatible with 1.0.x — NOT 1.1.0.
+- `>=1.0.0`: any version from 1.0.0 on, no upper bound.
+- `1.0.183`: only that exact version.
+
+Those are the four forms the game understands. A compound range
+(`>=1.0.0 <2.0.0`) is NOT supported: the game only reads the first
+term (that is `>=1.0.0`, with no upper bound) and ignores the rest. A
+bare `<` (`<2.0.0`) matches no version and your mod is marked
+`incompatible`.
 
 Use the widest range you've tested. If you only tested with
 2.3.0:
 
 ```
-"gameVersion": "^2.3.0"   // good
-"gameVersion": "^2.0.0"   // optimistic; might break with 2.0.x
+"gameVersion": "^1.3.0"   // good
+"gameVersion": "^1.0.0"   // optimistic; might break with 1.0.x
 ```
 
 After testing with a new game version, **publish a new version
@@ -103,13 +110,16 @@ of your mod** with the widened range.
 ## `requires.hostApi` — the other half of the contract
 
 ```json
-"requires": { "hostApi": "^1.0.0" }
+"requires": { "hostApi": "^2.0.0" }
 ```
 
-This compares against the game's `host.api.version`. If the
-game's host API jumps from 1.x to 2.x (breaking), your mod is
-marked `incompatible` until you publish a version with
-`requires.hostApi: '^2.0.0'`.
+This compares against the game's `host.api.version`. When the
+game's host API changes MAJOR (breaking), your mod is marked
+`incompatible` until you publish a version with the new range. It
+has happened once already: Snake Classic exposes `2.0.0` since
+Oct 2026 (it removed `fx.ctx`, `fx.pixelate`, `helpers.ringBurst`
+and `helpers.radialLight` from the `renderFx` frame), so a mod with
+`^1.x` does not load until it asks for `^2.0.0`.
 
 The studio maintains
 `docs/games/<id>/host-api-changelog.md` with each change. Follow
@@ -151,7 +161,7 @@ surfaces. "A universal mod" would be fragile.
 
 - Target the logical `gameId`, not the AppID nor the commercial
   name.
-- SemVer ranges in `target.gameVersion` and `requires.hostApi`.
+- SemVer ranges in `target.gameVersion` and `requires.hostApi` (exact, `^`, `~` or `>=`).
 - Your mod automatically works in standalone and in bundles
   (Classics Collection) that mount that game.
 - Workshop mapping: publish against one AppID, discovered from

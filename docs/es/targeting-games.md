@@ -17,7 +17,7 @@ target correcto y por qué tu mod funcionará en distintos bundles
 
 ```json
 {
-  "target": { "gameId": "snake-classic", "gameVersion": "^2.0.0" }
+  "target": { "gameId": "snake-classic", "gameVersion": "^1.0.0" }
 }
 ```
 
@@ -76,20 +76,26 @@ distribución). Si solo existe la collection, publica contra ese.
 ```json
 "target": {
   "gameId": "snake-classic",
-  "gameVersion": "^2.0.0"
+  "gameVersion": "^1.0.0"
 }
 ```
 
 SemVer range:
-- `^2.0.0`: compatible con 2.0.0, 2.5.7, 2.99.99 — NO 3.0.0.
-- `~2.0.0`: compatible con 2.0.x — NO 2.1.0.
-- `>=2.0.0 <3.0.0`: explícito.
+- `^1.0.0`: compatible con 1.0.0, 1.5.7, 1.99.99 — NO 2.0.0.
+- `~1.0.0`: compatible con 1.0.x — NO 1.1.0.
+- `>=1.0.0`: cualquier versión desde la 1.0.0, sin techo.
+- `1.0.183`: solo esa versión exacta.
+
+Son las cuatro formas que el juego entiende. Un rango compuesto
+(`>=1.0.0 <2.0.0`) NO se admite: el juego solo lee el primer término
+(eso es `>=1.0.0`, sin techo) y el resto lo ignora. Un `<` suelto
+(`<2.0.0`) no casa con ninguna versión y tu mod queda `incompatible`.
 
 Pon el rango más amplio que has testeado. Si solo probaste con 2.3.0:
 
 ```
-"gameVersion": "^2.3.0"   // bien
-"gameVersion": "^2.0.0"   // optimista; podría romperse con 2.0.x
+"gameVersion": "^1.3.0"   // bien
+"gameVersion": "^1.0.0"   // optimista; podría romperse con 1.0.x
 ```
 
 Después de testear con una version nueva del juego, **publica una
@@ -100,12 +106,16 @@ nueva versión de tu mod** con el rango ampliado.
 ## `requires.hostApi` — la otra mitad del contrato
 
 ```json
-"requires": { "hostApi": "^1.0.0" }
+"requires": { "hostApi": "^2.0.0" }
 ```
 
-Esto compara contra el `host.api.version` del juego. Si la host API
-del juego pasa de 1.x a 2.x (breaking), tu mod queda `incompatible`
-hasta que publiques una versión con `requires.hostApi: '^2.0.0'`.
+Esto compara contra el `host.api.version` del juego. Cuando la host
+API del juego cambia de MAJOR (breaking), tu mod queda `incompatible`
+hasta que publiques una versión con el rango nuevo. Ya pasó una vez:
+Snake Classic expone la `2.0.0` desde oct-2026 (retiró `fx.ctx`,
+`fx.pixelate`, `helpers.ringBurst` y `helpers.radialLight` del frame de
+`renderFx`), así que un mod con `^1.x` no carga hasta que pida
+`^2.0.0`.
 
 El estudio mantiene
 `docs/games/<id>/host-api-changelog.md` con cada cambio. Síguelo si
@@ -145,7 +155,7 @@ propias superficies. "Un mod universal" sería frágil.
 ## Resumen
 
 - Apunta al `gameId` lógico, no al AppID ni al nombre comercial.
-- Rangos SemVer en `target.gameVersion` y `requires.hostApi`.
+- Rangos SemVer en `target.gameVersion` y `requires.hostApi` (exacto, `^`, `~` o `>=`).
 - Tu mod funciona automáticamente en standalone y en bundles (Classics
   Collection) que monten ese juego.
 - Workshop mapping: publica contra un AppID, descubierto desde todos.

@@ -5,9 +5,9 @@
   — los cambios se sobrescriben en la siguiente sincronización.
 -->
 
-# Host API — snake-classic v1.0.107
+# Host API — snake-classic v1.0.183
 
-> Host API version: `1.2.0`
+> Host API version: `2.0.0`
 > Auto-generado por `@modules/moddable/changelog-gen`. NO editar a mano.
 
 > Auto-generado por scripts/mods/gen-moddable-artifacts.mjs.
@@ -79,8 +79,7 @@ Medidos automaticamente por el runtime y gatillan throttling adaptativo antes de
 - `GAME_DATA__RUN__SCORE__MULTIPLIER`
 - `GAME_DATA__RUN__SPEED__LEVEL`
 - `GAME_DATA__RUN__SNAKE__LENGTH`
-- `GAME_DATA__RUN__POWERUP__ACTIVE`
-- `GAME_DATA__RUN__POWERUP__ACTIVE_VARIANT`
+- `GAME_DATA__RUN__POWERUP__EFFECTS`
 - `GAME_DATA__APP_SYNC__PROGRESS__HIGH_SCORE`
 
 **Escritura**: vacio — mods NO escriben estado directamente. Para mutar, dispatchar un evento `MOD_*_REQUESTED` que el director del juego decide aplicar.
@@ -118,6 +117,7 @@ Medidos automaticamente por el runtime y gatillan throttling adaptativo antes de
 | `uiIconPreset` | string | `''` | — | — | restart-required | Preset de iconos de UI activo (vacio = default del juego); aplica al re-montar la ruta |
 | `uiFontPreset` | string | `''` | — | — | restart-required | Preset tipografico de UI activo (vacio = default del juego); aplica al re-montar la ruta |
 | `canvasPalette` | string | `''` | — | — | immediate | Paleta del canvas activa (vacio = seguir el setting theme) |
+| `uiSkin` | enum | `''` |  \| arcade \| classic | — | immediate | Aspecto de los menus: inicio, opciones, codex y ranking ('' = arcade por defecto; 'classic' = arte original) |
 | `hudPosition` | enum | `'default'` | default \| top \| bottom \| left \| right | — | immediate | Posicion del HUD (default = preferencia del jugador) |
 | `hudRatio` | enum | `'default'` | default \| golden-major \| golden-minor \| golden-third \| golden-fourth \| golden-fifth \| thirds-two \| thirds-one \| sqrt2-major \| sqrt2-inner \| sqrt2-minor \| zones-focal \| zones-side \| zones-bottom-bar \| zones-top-bar | — | immediate | Preset de tamano del HUD (default = preferencia del jugador) |
 | `hudOverlayMode` | enum | `'default'` | default \| on \| off | — | immediate | Modo overlay del HUD (default = preferencia del jugador) |
@@ -140,6 +140,15 @@ Medidos automaticamente por el runtime y gatillan throttling adaptativo antes de
 |---|---|
 | `setBase` | true |
 | `setProgression` | true |
+
+### `registries`
+
+| Action | Granted |
+|---|---|
+| `register` | true |
+| `tune` | true |
+| `remove` | true |
+| `enable` | true |
 
 ## Settings UI
 
@@ -182,7 +191,7 @@ Medidos automaticamente por el runtime y gatillan throttling adaptativo antes de
 | Tier | Override |
 |---|---|
 | `unsigned` | allowedHosts: [∅] |
-| `workshopVerified` | maxRequestsPerMinute: `10` |
+| `workshopVerified` | allowedHosts: [∅] |
 | `studioSigned` | maxRequestsPerMinute: `30` |
 
 ## Analytics (custom events)
@@ -198,8 +207,11 @@ Medidos automaticamente por el runtime y gatillan throttling adaptativo antes de
 Mods first-party que viajan dentro del bundle del juego. El jugador puede activarlos sin descargar desde Workshop.
 
 **Disponibles (no enabled por defecto)**:
+- `studio.classic-home@0.1.0`
+- `studio.classic-snake@0.1.0`
 - `studio.fun-config@1.0.0`
 - `studio.gameplay-tuner@0.1.0`
+- `studio.retro-creatures@0.1.0`
 
 ## Registries
 
@@ -253,6 +265,31 @@ Mods first-party que viajan dentro del bundle del juego. El jugador puede activa
 - Items declarados: 0
 - Items enabled por defecto: 0
 
+### art-procedural-opt-out
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
+### item-progress-bar-image
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
+### item-progress-wipe
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
+### sfx-overrides
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
+### resume-countdown-skin
+
+- Items declarados: 0
+- Items enabled por defecto: 0
+
 ## Extension points
 
 | Name | Default | Impls registradas |
@@ -263,8 +300,8 @@ Mods first-party que viajan dentro del bundle del juego. El jugador puede activa
 
 ### `snake-art`
 
-- Claves: 29
-- Lista: `player-head`, `player-body`, `ghost-head`, `clone-head-yellow`, `clone-body-yellow`, `clone-head-blue`, `clone-body-blue`, `brick-lethal`, `brick-fragile`, `demon`, `bomb`, `food`, `powerup-pill-yellow`, `powerup-pill-blue`, `heart`, `rainbow-drop`, `portal`, `white-portal`, `entry-arrow`, `brick-lethal:red`, `brick-lethal:blue`, `brick-fragile:yellow`, `brick-fragile:blue`, `demon:yellow`, `demon:blue`, `demon:red`, `heart:yellow`, `heart:blue`, `heart:rainbow`
+- Claves: 33
+- Lista: `player-head`, `player-body`, `ghost-head`, `clone-head-yellow`, `clone-body-yellow`, `clone-head-blue`, `clone-body-blue`, `brick-lethal`, `brick-fragile`, `brick-destroyed`, `demon`, `demon-destroyed`, `bomb`, `food`, `powerup-pill-yellow`, `powerup-pill-blue`, `heart`, `rainbow-drop`, `portal`, `white-portal`, … (+13 mas)
 
 ### `snake-overlay-images`
 
@@ -278,8 +315,8 @@ Mods first-party que viajan dentro del bundle del juego. El jugador puede activa
 
 ### `snake-sfx`
 
-- Claves: 22
-- Lista: `eat`, `lastFood`, `die`, `click`, `levelUp`, `bonusLevel`, `miniLevelDefeat`, `heartCollected`, `entitySpawnTick`, `powerUpPositive`, `powerUpNegative`, `extraLifeLost`, `recordBeaten`, `enemyDeath`, `brickSpawn`, `brickDestroy`, `earthquake`, `bombExplosion`, `portalTeleport`, `blockedClose`, `homeMenuClick`, `homeMenuHover`
+- Claves: 27
+- Lista: `eat`, `foodTriumph`, `hurt`, `lastFood`, `die`, `click`, `levelUp`, `bonusLevel`, `miniLevelDefeat`, `heartCollected`, `entitySpawnTick`, `powerUpPositive`, `powerUpNegative`, `extraLifeLost`, `recordBeaten`, `enemyDeath`, `brickSpawn`, `brickDestroy`, `earthquake`, `bombExplosion`, `portalTeleport`, `blockedClose`, `homeMenuClick`, `homeMenuHover`, `foodFrameAdvance`, `matchFound`, `newPlayer`
 
 ## Host functions
 
@@ -288,3 +325,7 @@ Mods first-party que viajan dentro del bundle del juego. El jugador puede activa
 | `gameConfigSet` | tunables | set | Aplica un override a un tunable del juego. Validado por rango/tipo/enum y por trust tier del mod. |
 | `gameConfigReset` | tunables | reset | Elimina el override de un tunable. La siguiente lectura devuelve el default. |
 | `gameConfigSnapshot` | tunables | snapshot | Devuelve el valor actual de cada tunable (override o default). Read-only. §3.4 audit: solo expone tunables con `requiresTier` que el caller cumple — info-leak fix. |
+| `registryRegister` | registries | register | Registra un item nuevo en un registry del juego (requiere canRegister). El item se valida con el itemSchema del registry. |
+| `registryTune` | registries | tune | Cambia un campo tuneable (canTune) de un item del registry. Re-valida el item con el itemSchema. |
+| `registryRemove` | registries | remove | Quita un item registrado por un mod (requiere canRemove). Los items base del juego no son removibles. |
+| `registryEnable` | registries | enable | Activa/desactiva un item existente del registry (requiere canEnable). |

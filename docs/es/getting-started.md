@@ -68,9 +68,9 @@ necesitar el juego levantado.
   "manifestVersion": 1,
   "id": "tunick.hello-mod",
   "version": "0.1.0",
-  "target": { "gameId": "snake-classic", "gameVersion": "^2.0.0" },
+  "target": { "gameId": "snake-classic", "gameVersion": "^1.0.0" },
   "engine": { "preferred": "quickjs-declarative-ui", "fallbacks": ["isolated-vm"] },
-  "requires": { "hostApi": "^1.0.0" },
+  "requires": { "hostApi": "^2.0.0" },
   "entry": "dist/index.js",
   "permissions": [
     {
